@@ -2,9 +2,9 @@
 
 #pragma once
 
-#include "AOWAbilitySystemComponent.generated.h"
 #include "AbilitySystemComponent.h"
 #include "CoreMinimal.h"
+#include "AOWAbilitySystemComponent.generated.h"
 
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class ASHESOFWAR_API UAOWAbilitySystemComponent : public UAbilitySystemComponent {
