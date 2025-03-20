@@ -75,3 +75,8 @@ DerivedDataCache/*
 
 # Rider files
 .idea/
+<<<<<<< HEAD
+"cmake-build-debug/" 
+"cmake-build-debug/" 
+=======
+>>>>>>> origin/main
