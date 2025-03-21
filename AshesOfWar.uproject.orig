@@ -7,10 +7,14 @@
 		{
 			"Name": "AshesOfWar",
 			"Type": "Runtime",
+<<<<<<< HEAD
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
 				"Engine"
 			]
+=======
+			"LoadingPhase": "Default"
+>>>>>>> origin/main
 		}
 	],
 	"Plugins": [
