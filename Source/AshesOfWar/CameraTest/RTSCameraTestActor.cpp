@@ -18,11 +18,11 @@ void ARTSCameraTestActor::BeginPlay()
 
         if (CameraSubsystem)
         {
-            UE_LOG(LogTemp, Warning, TEXT("UARTSCameraSubsystem trouvé !"));
+            UE_LOG(LogTemp, Warning, TEXT("UARTSCameraSubsystem trou!"));
         }
         else
         {
-            UE_LOG(LogTemp, Error, TEXT("UARTSCameraSubsystem non trouvé !"));
+            UE_LOG(LogTemp, Error, TEXT("UARTSCameraSubsystem non trou!"));
         }
     }
 }

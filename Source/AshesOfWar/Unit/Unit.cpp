@@ -2,24 +2,67 @@
 
 #include "Unit.h"
 
+#include "AshesOfWar/AbilitySystem/AOWAbilitySystemComponent.h"
+#include "AshesOfWar/AbilitySystem/AOWAttributeSet.h"
+
 // Sets default values
 AUnit::AUnit() {
-  // Set this character to call Tick() every frame.  You can turn this off to
-  // improve performance if you don't need it.
   PrimaryActorTick.bCanEverTick = true;
 }
 
-// Called when the game starts or when spawned
-void AUnit::BeginPlay() {
+void AUnit::BeginPlay()
+{
   Super::BeginPlay();
-  
+  AbilitySystemComponent->InitAbilityActorInfo(this, this);
+  // Give the ability to a unit should be done in the server
+  GiveDefaultAbilities();
+  // Initialize the default attributes of the unit
+  InitDefaultAttributes();
 }
 
-// Called every frame
-void AUnit::Tick(float DeltaTime) { Super::Tick(DeltaTime); }
-
-// Called to bind functionality to input
-void AUnit::SetupPlayerInputComponent(UInputComponent *PlayerInputComponent) {
-  Super::SetupPlayerInputComponent(PlayerInputComponent);
+UAbilitySystemComponent* AUnit::GetAbilitySystemComponent() const
+{
+  return AbilitySystemComponent;
 }
+
+UAOWAttributeSet* AUnit::GetAttributeSet() const
+{
+  return AttributeSet;
+}
+
+void AUnit::GiveDefaultAbilities()
+{
+  check(AbilitySystemComponent);
+
+  // should check if it is the server
+  // if (!HasAuthority()) return;
+
+  // give the default abilities to the unit and initialize them with level 1
+  for (TSubclassOf<UGameplayAbility> AbilityClass : DefaultAbilities)
+  {
+    int32 InitLevel = 1;
+    const FGameplayAbilitySpec AbilitySpec(AbilityClass, InitLevel);
+    AbilitySystemComponent->GiveAbility(AbilitySpec);
+  }
+}
+
+void AUnit::InitDefaultAttributes()
+{
+  // Use the DefaultAttributeEffect to initialize the attributes of the unit
+  // This would 
+  if (!AbilitySystemComponent || !DefaultAttributeEffect) return;
+
+  FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+  EffectContext.AddSourceObject(this);
+
+  float Level =  1.0f;
+  const FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
+    DefaultAttributeEffect, Level, EffectContext);
+
+  if (SpecHandle.IsValid())
+  {
+    AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+  }
+}
+
 
