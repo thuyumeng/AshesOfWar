@@ -4,20 +4,34 @@
 
 #include "AshesOfWar/AbilitySystem/AOWAbilitySystemComponent.h"
 #include "AshesOfWar/AbilitySystem/AOWAttributeSet.h"
+#include "AshesOfWar/AI/AIControllers/UnitAIController.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 AUnit::AUnit() {
   PrimaryActorTick.bCanEverTick = true;
+
+  AbilitySystemComponent = CreateDefaultSubobject<UAOWAbilitySystemComponent>("AbilitySystemComponent");
+  AttributeSet = CreateDefaultSubobject<UAOWAttributeSet>("AttributeSet");
 }
 
 void AUnit::BeginPlay()
 {
   Super::BeginPlay();
+
+  // Initialize the ability system component
   AbilitySystemComponent->InitAbilityActorInfo(this, this);
   // Give the ability to a unit should be done in the server
   GiveDefaultAbilities();
   // Initialize the default attributes of the unit
   InitDefaultAttributes();
+  // Setup the AI controller
+  AIControllerClass = AUnitAIController::StaticClass();
+  if (AIControllerClass)
+  {
+    AUnitAIController* AIController = GetWorld()->SpawnActor<AUnitAIController>(AIControllerClass, FTransform::Identity);
+    AIController->Possess(this);
+  }
 }
 
 UAbilitySystemComponent* AUnit::GetAbilitySystemComponent() const
@@ -28,6 +42,24 @@ UAbilitySystemComponent* AUnit::GetAbilitySystemComponent() const
 UAOWAttributeSet* AUnit::GetAttributeSet() const
 {
   return AttributeSet;
+}
+
+void AUnit::MoveToLocation(FVector TargetLocation)
+{
+  if (AAIController* AIController = Cast<AAIController>(GetController()))
+  {
+    // set the speed of the unit to the speed unit, and move to the target location
+    GetCharacterMovement()->MaxWalkSpeed = NUMERIC_VALUE(AttributeSet, Speed);
+    AIController->MoveToLocation(TargetLocation);
+  }
+}
+
+void AUnit::StopMovement()
+{
+  if (AAIController* AIController = Cast<AAIController>(GetController()))
+  {
+    AIController->StopMovement();
+  }
 }
 
 void AUnit::GiveDefaultAbilities()
