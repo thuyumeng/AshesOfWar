@@ -46,6 +46,9 @@ void AUnitAIController::OnPossess(APawn* InPawn)
 {
 	// Create the blackboard component and run the behavior tree
 	Super::OnPossess(InPawn);
+
+	// check if the default behavior tree is valid
+	check(BehaviorTree);
 	// initialize the blackboard
 	UBlackboardComponent* BlackboardComponent;
 	UseBlackboard(BehaviorTree->BlackboardAsset, BlackboardComponent);
