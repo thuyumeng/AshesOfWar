@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "Unit.generated.h"
 
 // forward declarations of the gameplay ability system classes
@@ -23,8 +24,13 @@ public:
   // Implement IAbilitySystemInterface
   virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
   // End of implementation of IAbilitySystemInterface
-
   virtual UAOWAttributeSet* GetAttributeSet() const;
+
+  UFUNCTION(BlueprintCallable)
+  void MoveToLocation(FVector TargetLocation);
+
+  UFUNCTION(BlueprintCallable)
+  void StopMovement();
 protected:
   // Begin play to initialize the Ability and Attribute
   virtual void BeginPlay() override;
@@ -34,9 +40,9 @@ protected:
   void InitDefaultAttributes();
 
   // the reference to the ability system objects
-  UPROPERTY()
+  UPROPERTY(EditDefaultsOnly, Category = "Ability", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UAOWAbilitySystemComponent> AbilitySystemComponent;
-  UPROPERTY()
+  UPROPERTY(EditDefaultsOnly, Category = "Attribute", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UAOWAttributeSet> AttributeSet;
 
   // Can be set in the editor to assign default abilities to the unit
@@ -46,4 +52,5 @@ protected:
   // The default attribute effect to apply to the unit(initialize the attributes)
   UPROPERTY(EditDefaultsOnly, Category = "Ability")
   TSubclassOf<UGameplayEffect> DefaultAttributeEffect;
+  
 };
