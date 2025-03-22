@@ -40,9 +40,9 @@ protected:
   void InitDefaultAttributes();
 
   // the reference to the ability system objects
-  UPROPERTY()
+  UPROPERTY(EditDefaultsOnly, Category = "Ability", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UAOWAbilitySystemComponent> AbilitySystemComponent;
-  UPROPERTY()
+  UPROPERTY(EditDefaultsOnly, Category = "Attribute", meta = (AllowPrivateAccess = "true"))
   TObjectPtr<UAOWAttributeSet> AttributeSet;
 
   // Can be set in the editor to assign default abilities to the unit

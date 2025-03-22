@@ -10,11 +10,16 @@
 // Sets default values
 AUnit::AUnit() {
   PrimaryActorTick.bCanEverTick = true;
+
+  AbilitySystemComponent = CreateDefaultSubobject<UAOWAbilitySystemComponent>("AbilitySystemComponent");
+  AttributeSet = CreateDefaultSubobject<UAOWAttributeSet>("AttributeSet");
 }
 
 void AUnit::BeginPlay()
 {
   Super::BeginPlay();
+
+  // Initialize the ability system component
   AbilitySystemComponent->InitAbilityActorInfo(this, this);
   // Give the ability to a unit should be done in the server
   GiveDefaultAbilities();

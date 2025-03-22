@@ -13,7 +13,7 @@ AUnitAIController::AUnitAIController(const FObjectInitializer& ObjectInitializer
 	PrimaryActorTick.bCanEverTick = true;
 
 	// load the default behavior tree
-	static ConstructorHelpers::FObjectFinder<UBehaviorTree> DefaultBehaviorTree(TEXT("/Referencto_DefaultBehaviorTree"));
+	static ConstructorHelpers::FObjectFinder<UBehaviorTree> DefaultBehaviorTree(TEXT("/Game/Blueprints/Units/AI/BT_Unit.BT_Unit"));
 	if (DefaultBehaviorTree.Succeeded())
 	{
 		BehaviorTree = DefaultBehaviorTree.Object;
