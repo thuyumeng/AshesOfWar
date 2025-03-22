@@ -4,6 +4,7 @@
 
 #include "AshesOfWar/AbilitySystem/AOWAbilitySystemComponent.h"
 #include "AshesOfWar/AbilitySystem/AOWAttributeSet.h"
+#include "AshesOfWar/AI/AIControllers/UnitAIController.h"
 
 // Sets default values
 AUnit::AUnit() {
@@ -18,6 +19,13 @@ void AUnit::BeginPlay()
   GiveDefaultAbilities();
   // Initialize the default attributes of the unit
   InitDefaultAttributes();
+  // Setup the AI controller
+  AIControllerClass = AUnitAIController::StaticClass();
+  if (AIControllerClass)
+  {
+    AUnitAIController* AIController = GetWorld()->SpawnActor<AUnitAIController>(AIControllerClass, FTransform::Identity);
+    AIController->Possess(this);
+  }
 }
 
 UAbilitySystemComponent* AUnit::GetAbilitySystemComponent() const

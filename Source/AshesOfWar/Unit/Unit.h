@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "Unit.generated.h"
 
 // forward declarations of the gameplay ability system classes
@@ -25,6 +26,7 @@ public:
   // End of implementation of IAbilitySystemInterface
 
   virtual UAOWAttributeSet* GetAttributeSet() const;
+
 protected:
   // Begin play to initialize the Ability and Attribute
   virtual void BeginPlay() override;

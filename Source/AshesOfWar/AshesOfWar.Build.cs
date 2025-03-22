@@ -17,7 +17,9 @@ public class AshesOfWar : ModuleRules
 			"EnhancedInput", 
 			"GameplayAbilities",
 			"GameplayTags", 
-			"GameplayTasks"
+			"GameplayTasks",
+			"AIModule",
+			"NavigationSystem",
 		});
 
         PublicDependencyModuleNames.AddRange(new string[] 
