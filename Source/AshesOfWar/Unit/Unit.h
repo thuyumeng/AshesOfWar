@@ -24,9 +24,13 @@ public:
   // Implement IAbilitySystemInterface
   virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
   // End of implementation of IAbilitySystemInterface
-
   virtual UAOWAttributeSet* GetAttributeSet() const;
 
+  UFUNCTION(BlueprintCallable)
+  void MoveToLocation(FVector TargetLocation);
+
+  UFUNCTION(BlueprintCallable)
+  void StopMovement();
 protected:
   // Begin play to initialize the Ability and Attribute
   virtual void BeginPlay() override;
@@ -48,4 +52,5 @@ protected:
   // The default attribute effect to apply to the unit(initialize the attributes)
   UPROPERTY(EditDefaultsOnly, Category = "Ability")
   TSubclassOf<UGameplayEffect> DefaultAttributeEffect;
+  
 };

@@ -5,6 +5,7 @@
 #include "AshesOfWar/AbilitySystem/AOWAbilitySystemComponent.h"
 #include "AshesOfWar/AbilitySystem/AOWAttributeSet.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 AUnit::AUnit() {
@@ -36,6 +37,24 @@ UAbilitySystemComponent* AUnit::GetAbilitySystemComponent() const
 UAOWAttributeSet* AUnit::GetAttributeSet() const
 {
   return AttributeSet;
+}
+
+void AUnit::MoveToLocation(FVector TargetLocation)
+{
+  if (AAIController* AIController = Cast<AAIController>(GetController()))
+  {
+    // set the speed of the unit to the speed unit, and move to the target location
+    GetCharacterMovement()->MaxWalkSpeed = NUMERIC_VALUE(AttributeSet, Speed);
+    AIController->MoveToLocation(TargetLocation);
+  }
+}
+
+void AUnit::StopMovement()
+{
+  if (AAIController* AIController = Cast<AAIController>(GetController()))
+  {
+    AIController->StopMovement();
+  }
 }
 
 void AUnit::GiveDefaultAbilities()
