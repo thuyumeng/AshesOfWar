@@ -23,7 +23,9 @@ public:
   AUnit();
   // Subclass of AUnit can modify this function to customize in Blueprint or C++
   UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Initialization")
+  // blueprint
   void OnBeginPlay();
+  // C++
   virtual void OnBeginPlay_Implementation();
 
   // Implement IAbilitySystemInterface
