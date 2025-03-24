@@ -5,7 +5,6 @@
 #include "AshesOfWar/Unit/Unit.h"
 
 
-
 // Sets default values
 AUnitAIController::AUnitAIController(const FObjectInitializer& ObjectInitializer)
 {
