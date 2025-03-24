@@ -22,7 +22,7 @@ public:
   // Sets default values for this character's properties
   AUnit();
   // Subclass of AUnit can modify this function to customize in Blueprint or C++
-  UFUNCTION(BlueprintNativeEvent, Category = "Initialization")
+  UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Initialization")
   void OnBeginPlay();
   virtual void OnBeginPlay_Implementation();
 

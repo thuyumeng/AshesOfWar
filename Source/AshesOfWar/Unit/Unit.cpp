@@ -22,6 +22,7 @@ AUnit::AUnit() {
 
 void AUnit::OnBeginPlay_Implementation()
 {
+  UE_LOG(LogTemp, Warning, TEXT("OnBeginPlay_Implementation"));
 }
 
 void AUnit::BeginPlay()
@@ -41,14 +42,9 @@ void AUnit::BeginPlay()
     AIController->Possess(this);
   }
   
-  // Test set the target actor
-  AUnitAIController* AIController = Cast<AUnitAIController>(GetController());
-  if (AIController)
-  {
-    UBlackboardComponent* BlackboardComponent = AIController->GetBlackboardComponent();
-    BlackboardComponent->SetValueAsObject(
-      FName("TargetActor"), UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-  }
+  // After setting up the ability system component and the AI controller, call the OnBeginPlay function in child class
+  // to customize the unit, this function can be overridden in the blueprint and C++
+  OnBeginPlay();
 }
 
 UAbilitySystemComponent* AUnit::GetAbilitySystemComponent() const
