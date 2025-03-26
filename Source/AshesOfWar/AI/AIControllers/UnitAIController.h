@@ -25,5 +25,5 @@ protected:
 	virtual void OnPossess(APawn* InPawn) override;
 
 	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UBehaviorTree> BehaviorTree;
+	TObjectPtr<UBehaviorTree> BehaviorTree {nullptr};
 };

@@ -5,7 +5,9 @@
 #include "AshesOfWar/AbilitySystem/AOWAbilitySystemComponent.h"
 #include "AshesOfWar/AbilitySystem/AOWAttributeSet.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 // Sets default values
 AUnit::AUnit() {
@@ -13,6 +15,14 @@ AUnit::AUnit() {
 
   AbilitySystemComponent = CreateDefaultSubobject<UAOWAbilitySystemComponent>("AbilitySystemComponent");
   AttributeSet = CreateDefaultSubobject<UAOWAttributeSet>("AttributeSet");
+
+  // Setup the AI controller class
+  AIControllerClass = AUnitAIController::StaticClass();
+}
+
+void AUnit::OnBeginPlay_Implementation()
+{
+  UE_LOG(LogTemp, Warning, TEXT("OnBeginPlay_Implementation"));
 }
 
 void AUnit::BeginPlay()
@@ -26,12 +36,15 @@ void AUnit::BeginPlay()
   // Initialize the default attributes of the unit
   InitDefaultAttributes();
   // Setup the AI controller
-  AIControllerClass = AUnitAIController::StaticClass();
   if (AIControllerClass)
   {
     AUnitAIController* AIController = GetWorld()->SpawnActor<AUnitAIController>(AIControllerClass, FTransform::Identity);
     AIController->Possess(this);
   }
+  
+  // After setting up the ability system component and the AI controller, call the OnBeginPlay function in child class
+  // to customize the unit, this function can be overridden in the blueprint and C++
+  OnBeginPlay();
 }
 
 UAbilitySystemComponent* AUnit::GetAbilitySystemComponent() const

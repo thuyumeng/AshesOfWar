@@ -21,6 +21,13 @@ class ASHESOFWAR_API AUnit : public ACharacter, public IAbilitySystemInterface{
 public:
   // Sets default values for this character's properties
   AUnit();
+  // Subclass of AUnit can modify this function to customize in Blueprint or C++
+  UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Initialization")
+  // blueprint
+  void OnBeginPlay();
+  // C++
+  virtual void OnBeginPlay_Implementation();
+
   // Implement IAbilitySystemInterface
   virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
   // End of implementation of IAbilitySystemInterface
