@@ -2,8 +2,8 @@
 
 #include "Unit.h"
 
-#include "AshesOfWar/AbilitySystem/AOWAbilitySystemComponent.h"
-#include "AshesOfWar/AbilitySystem/AOWAttributeSet.h"
+#include "AshesOfWar/Ability/AOWAbilitySystemComponent.h"
+#include "AshesOfWar/Ability/AOWAttributeSet.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
