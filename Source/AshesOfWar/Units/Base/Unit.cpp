@@ -15,9 +15,6 @@ AUnit::AUnit() {
 
   AbilitySystemComponent = CreateDefaultSubobject<UAOWAbilitySystemComponent>("AbilitySystemComponent");
   AttributeSet = CreateDefaultSubobject<UAOWAttributeSet>("AttributeSet");
-
-  // Setup the AI controller class
-  AIControllerClass = AUnitAIController::StaticClass();
 }
 
 void AUnit::OnBeginPlay_Implementation()
@@ -35,12 +32,6 @@ void AUnit::BeginPlay()
   GiveDefaultAbilities();
   // Initialize the default attributes of the unit
   InitDefaultAttributes();
-  // Setup the AI controller
-  if (AIControllerClass)
-  {
-    AUnitAIController* AIController = GetWorld()->SpawnActor<AUnitAIController>(AIControllerClass, FTransform::Identity);
-    AIController->Possess(this);
-  }
   
   // After setting up the ability system component and the AI controller, call the OnBeginPlay function in child class
   // to customize the unit, this function can be overridden in the blueprint and C++

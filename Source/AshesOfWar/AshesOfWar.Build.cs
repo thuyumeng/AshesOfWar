@@ -20,20 +20,12 @@ public class AshesOfWar : ModuleRules
 			"GameplayTasks",
 			"AIModule",
 			"NavigationSystem",
+			"GameplayStateTreeModule",
+			"StateTreeModule",
+			"HeadMountedDisplay", 
+			"UMG" // UI for camera
 		});
-
-        PublicDependencyModuleNames.AddRange(new string[] 
-        { 
-            "Core", 
-            "CoreUObject", 
-            "Engine", 
-            "InputCore", 
-            "EnhancedInput", 
-            "HeadMountedDisplay", 
-            "GameplayTasks",
-            "UMG" // UI for camera
-        });
-
+		
 		// Uncomment if you are using Slate UI
         PrivateDependencyModuleNames.AddRange(new string[] 
         { 
