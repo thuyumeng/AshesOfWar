@@ -8,38 +8,36 @@
 #include "AshesOfWar/Resources/ResourcesTypes/FPlayerResourceData.h"
 #include "ARTSGameState.generated.h"
 
-
-//* Struct pour stocker les ressources de chaque joueur *//
-// FPlayerResourceData à inclure ou forward declare si séparé
-
-// Enum EResourceType à inclure pour identifier les types de ressource
-
+/**
+ * RTS Game State class for managing player resource data.
+ * This class keeps track of the resources owned by each player (human or AI)
+ * and provides functions to add, spend, or query resource amounts.
+ */
 UCLASS()
 class ASHESOFWAR_API AARTSGameState : public AGameState
 {
 	GENERATED_BODY()
 
 public:
-// Constructeur
+	// Constructor
 	AARTSGameState();
 
-	// TMap pour stocker les ressources de chaque joueur (humain ou IA)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ressource")
-	TMap<APlayerState*, FPlayerResourceData> PlayerResources;
-
-	//* Ajoute une quantité à une ressource spécifique pour un joueur *//
-	UFUNCTION(BlueprintCallable, Category = "Ressource")
-	void AddResource(APlayerState* Player, EResourceType ResourceType, int32 Amount);
-
-	//* Tente de retirer une ressource ; retourne vrai si possible *//
-	UFUNCTION(BlueprintCallable, Category = "Ressource")
-	bool SpendResource(APlayerState* Player, EResourceType ResourceType, int32 Amount);
-
-	//* Retourne la quantité actuelle pour un type de ressource *//
-	UFUNCTION(BlueprintCallable, Category = "Ressource")
-	int32 GetResourceAmount(APlayerState* Player, EResourceType ResourceType) const;
-
-	// Surcharge de BeginPlay pour initialiser les ressources de chaque joueur
+	// Initializes player resources when the game starts
 	virtual void BeginPlay() override;
 
+	// Stores resources for each player using their PlayerState as a key
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resource")
+	TMap<APlayerState*, FPlayerResourceData> PlayerResources;
+
+	// Adds a specific amount of a resource to a player
+	UFUNCTION(BlueprintCallable, Category = "Resource")
+	void AddResource(APlayerState* Player, EResourceType ResourceType, int32 Amount);
+
+	// Tries to spend a specific amount of a resource; returns true if the player has enough
+	UFUNCTION(BlueprintCallable, Category = "Resource")
+	bool SpendResource(APlayerState* Player, EResourceType ResourceType, int32 Amount);
+
+	// Returns the amount of a given resource type that a player currently has
+	UFUNCTION(BlueprintCallable, Category = "Resource")
+	int32 GetResourceAmount(APlayerState* Player, EResourceType ResourceType) const;
 };

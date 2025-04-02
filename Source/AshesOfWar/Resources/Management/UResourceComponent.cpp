@@ -1,34 +1,65 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+#include "UResourceComponent.h"
+#include "GameFramework/Actor.h"
+#include "Kismet/GameplayStatics.h"
+#include "AshesOfWar/Core/GameStates/ARTSGameState.h"
+#include "GameFramework/PlayerState.h"
+#include "AshesOfWar/Resources/Nodes/AResourceNode.h"
 
-
-#include "Resources/Management/UResourceComponent.h"
-
-// Sets default values for this component's properties
-UUResourceComponent::UUResourceComponent()
+UResourceComponent::UResourceComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bCanEverTick = false;
 
-	// ...
+	// Default values
+	bIsCollecting = false;
+	CarriedAmount = 0;
+	CarriedResourceType = EResourceType::Aetherium; // Default to Aetherium
+	CarriedMaxCapacity = 50;
+	CurrentResourceNode = nullptr;
 }
 
-
-// Called when the game starts
-void UUResourceComponent::BeginPlay()
+void UResourceComponent::BeginCollection()
 {
-	Super::BeginPlay();
+	// TODO: Re-check logic so it works properly with units
 
-	// ...
-	
+	if (!CurrentResourceNode || bIsCollecting)
+		return;
+
+	// Begin the collection process
+	bIsCollecting = true;
+	CarriedResourceType = CurrentResourceNode->GetResourceType();
+
+	// Determine how much to collect based on available quantity and extraction rate
+	int32 AvailableToExtract = FMath::Min(CurrentResourceNode->GetQteDisponible(), CarriedMaxCapacity);
+	int32 Extracted = FMath::Min(AvailableToExtract, CurrentResourceNode->GetExtRate());
+
+	CarriedAmount = Extracted;
+
+	// Update the remaining amount on the resource node
+	int32 NewQte = CurrentResourceNode->GetQteDisponible() - Extracted;
+	CurrentResourceNode->SetQteDisponible(NewQte);
 }
 
-
-// Called every frame
-void UUResourceComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UResourceComponent::StopCollection()
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	// TODO: Re-check logic so it works properly with units
 
-	// ...
+	// Stop the collection process and reset node reference
+	bIsCollecting = false;
+	CurrentResourceNode = nullptr;
 }
 
+APlayerState* UResourceComponent::GetPlayerState() const
+{
+	// Attempt to cast the owner to a pawn and return its PlayerState
+	APawn* OwnerPawn = Cast<APawn>(GetOwner());
+	if (!OwnerPawn) return nullptr;
+
+	return OwnerPawn->GetPlayerState();
+}
+
+void UResourceComponent::DepositResources()
+{
+	// TODO: Re-check logic so it works properly with units
+
+	// TODO: Implement logic to deposit carried resources into a structure (e.g., HQ or depot)
+}

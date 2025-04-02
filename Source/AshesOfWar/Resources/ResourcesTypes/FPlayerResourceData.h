@@ -3,21 +3,24 @@
 #include "CoreMinimal.h"
 #include "FPlayerResourceData.generated.h"
 
-//* Struct contenant les ressources individuelles d’un joueur *//
+/**
+ * Struct representing the resource data of a player.
+ * Contains the amount of each resource type: Aetherium, Vitae, and Umbra.
+ */
 USTRUCT(BlueprintType)
 struct RTS_EPICCONQUEST_API FPlayerResourceData
 {
 	GENERATED_BODY()
 
-	// Quantité d’Aetherium
+	// Amount of Aetherium (main resource used for most actions)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
 	int32 Aetherium = 0;
 
-	// Quantité de Vitae
+	// Amount of Vitae (used for mid-tier units and abilities)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
 	int32 Vitae = 0;
 
-	// Quantité d’Umbra
+	// Amount of Umbra (used for high-tier buildings and tech)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resources")
 	int32 Umbra = 0;
 };

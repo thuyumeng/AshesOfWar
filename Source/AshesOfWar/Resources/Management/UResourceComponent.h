@@ -1,24 +1,52 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
+#include "AshesOfWar/Resources/ResourcesTypes/EResourceType.h"
 #include "UResourceComponent.generated.h"
 
-//*Composant optionnel à attacher à un acteur pour gérer collecte ou dépôt de ressources*//
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class ASHESOFWAR_API UUResourceComponent : public UActorComponent
+/**
+ * Optional component that can be attached to units (typically workers)
+ * to handle resource collection and deposit logic.
+ */
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
+class ASHESOFWAR_API UResourceComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
+	// Constructor
 	UResourceComponent();
 
-	//*Fonctions possibles :*//
-	// BeginCollection(), StopCollection(), DepositResources()
+	// Starts collecting from the current resource node
+	UFUNCTION(Category = "Resource")
+	void BeginCollection();
 
-		
+	// Stops the collection process and clears current resource node
+	UFUNCTION(Category = "Resource")
+	void StopCollection();
+
+	// Deposits the carried resources into a base/building (to be implemented)
+	UFUNCTION(Category = "Resource")
+	void DepositResources();
+
+	// Returns the player state of the owner pawn
+	APlayerState* GetPlayerState() const;
+
+private:
+	// Whether this unit is currently collecting
+	bool bIsCollecting;
+
+	// Type of resource currently being carried
+	EResourceType CarriedResourceType;
+
+	// Current amount of resource being carried
+	int32 CarriedAmount;
+
+	// Maximum amount this unit can carry
+	int32 CarriedMaxCapacity;
+
+	// Current node from which this unit is collecting resources
+	UPROPERTY()
+	class AAResourceNode* CurrentResourceNode;
 };
-
-

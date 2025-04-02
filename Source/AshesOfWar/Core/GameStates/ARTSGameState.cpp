@@ -1,68 +1,57 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "ARTSGameState.h"
 
 AARTSGameState::AARTSGameState()
 {
-	
+	// Constructor logic (if needed)
 }
 
 void AARTSGameState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Parcourt tous les joueurs présents dans la partie
+	// Loop through all players and assign them starting resources
 	for (APlayerState* CurrentPlayer : PlayerArray)
 	{
 		if (!PlayerResources.Contains(CurrentPlayer))
 		{
-			// Crée une structure de ressources initiales
 			FPlayerResourceData StartingResources;
 			StartingResources.Aetherium = 500;
 			StartingResources.Vitae = 0;
 			StartingResources.Umbra = 0;
 
-			// Associe le joueur à ses ressources dans la TMap
 			PlayerResources.Add(CurrentPlayer, StartingResources);
 		}
 	}
 }
 
-
 void AARTSGameState::AddResource(APlayerState* Player, EResourceType ResourceType, int32 Amount)
 {
-	//* Vérifie si le Player est valide *//
-	if (!Player) {return;}
+	if (!Player || !PlayerResources.Contains(Player)) return;
 
-	//* Vérifie si la TMap contient ce joueur *//
-	if (!PlayerResources.Contains(Player)) return;
-
-	//* Utilise un switch sur ResourceType pour ajouter la bonne ressource *//
+	// Add the amount to the appropriate resource field
 	switch (ResourceType)
 	{
 	case EResourceType::Aetherium:
-			PlayerResources[Player].Aetherium += Amount;
-		case EResourceType::Vitae:
-			PlayerResources[Player].Vitae += Amount;
+		PlayerResources[Player].Aetherium += Amount;
+		break;
+	case EResourceType::Vitae:
+		PlayerResources[Player].Vitae += Amount;
+		break;
 	case EResourceType::Umbra:
 		PlayerResources[Player].Umbra += Amount;
+		break;
+	default:
+		break;
 	}
-
-	// case EResourceType::Aetherium: ajoute à PlayerResources[Player].Aetherium
-	// etc.
 }
-
 
 bool AARTSGameState::SpendResource(APlayerState* Player, EResourceType ResourceType, int32 Amount)
 {
-	//* Vérifie si le Player est valide *//
-	if (!Player) {return false;}
+	if (!Player || !PlayerResources.Contains(Player)) return false;
 
-	//* Vérifie si la TMap contient ce joueur *//
-	if (!PlayerResources.Contains(Player)) {return false;}
-
-	//* Utilise un switch pour vérifier s’il a assez de la ressource demandée *//
+	// Subtract the amount only if the player has enough of that resource
 	switch (ResourceType)
 	{
 	case EResourceType::Aetherium:
@@ -72,7 +61,7 @@ bool AARTSGameState::SpendResource(APlayerState* Player, EResourceType ResourceT
 			return true;
 		}
 		break;
-		
+
 	case EResourceType::Vitae:
 		if (PlayerResources[Player].Vitae >= Amount)
 		{
@@ -80,7 +69,7 @@ bool AARTSGameState::SpendResource(APlayerState* Player, EResourceType ResourceT
 			return true;
 		}
 		break;
-		
+
 	case EResourceType::Umbra:
 		if (PlayerResources[Player].Umbra >= Amount)
 		{
@@ -91,35 +80,22 @@ bool AARTSGameState::SpendResource(APlayerState* Player, EResourceType ResourceT
 	}
 
 	return false;
-	
 }
-
 
 int32 AARTSGameState::GetResourceAmount(APlayerState* Player, EResourceType ResourceType) const
 {
-	//* Vérifie si le Player est valide *//
-	if (!Player) {return 0;}
+	if (!Player || !PlayerResources.Contains(Player)) return 0;
 
-	//* Vérifie si la TMap contient ce joueur *//
-	if (!PlayerResources.Contains(Player)) {return 0;}
-
-	//* Utilise un switch pour retourner la bonne ressource *//
-	// case EResourceType::Vitae: return PlayerResources[Player].Vitae;
+	// Return the value of the requested resource
 	switch (ResourceType)
 	{
 	case EResourceType::Aetherium:
-		return  PlayerResources[Player].Aetherium;
-		break;
+		return PlayerResources[Player].Aetherium;
 	case EResourceType::Vitae:
 		return PlayerResources[Player].Vitae;
-		break;
 	case EResourceType::Umbra:
 		return PlayerResources[Player].Umbra;
-		break;
+	default:
+		return 0;
 	}
-
-	return 0;
-	//* Si le joueur n’est pas trouvé, retourne 0 *//
 }
-
-

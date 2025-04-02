@@ -1,27 +1,42 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+#include "AResourceNode.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
 
-
-#include "Resources/Nodes/AResourceNode.h"
-
-// Sets default values
 AAResourceNode::AAResourceNode()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	// Disable Tick by default
+	PrimaryActorTick.bCanEverTick = false;
 
+	// Create the visual mesh component
+	ResourceMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ResourceMesh"));
+	RootComponent = ResourceMesh;
+
+	// Create the collection detection radius (for workers)
+	CollectionRadius = CreateDefaultSubobject<USphereComponent>(TEXT("CollectionRadius"));
+	CollectionRadius->SetupAttachment(RootComponent);
+	CollectionRadius->SetSphereRadius(200.f); // Default radius, adjustable in editor
+	CollectionRadius->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CollectionRadius->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	CollectionRadius->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	CollectionRadius->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+
+	// Default values
+	ResourceType = EResourceType::Aetherium;
+	QteDisponible = 1000;
+	ExtractionRate = 10;
 }
 
-// Called when the game starts or when spawned
-void AAResourceNode::BeginPlay()
+int AAResourceNode::GetQteDisponible()
 {
-	Super::BeginPlay();
-	
+	return QteDisponible;
 }
 
-// Called every frame
-void AAResourceNode::Tick(float DeltaTime)
+int AAResourceNode::GetExtRate()
 {
-	Super::Tick(DeltaTime);
-
+	return ExtractionRate;
 }
 
+void AAResourceNode::SetQteDisponible(int Amount)
+{
+	QteDisponible = Amount;
+}
