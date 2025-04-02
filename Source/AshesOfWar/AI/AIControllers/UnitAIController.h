@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// AI Controller class for RTS units in Ashes of War
 
 #pragma once
 
@@ -6,19 +6,29 @@
 #include "Runtime/AIModule/Classes/AIController.h"
 #include "UnitAIController.generated.h"
 
+// Forward declaration to avoid unnecessary includes in the header
 class UUnitStateTreeAIComponent;
 
+/**
+ * AUnitAIController
+ * Custom AIController class managing RTS unit behavior via StateTree.
+ */
 UCLASS()
 class ASHESOFWAR_API AUnitAIController : public AAIController
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
+	// Constructor: Initializes this AI Controller with a StateTree component
 	explicit AUnitAIController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category="AI")
+
+	// AI logic component using Unreal's StateTree system
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI")
 	TObjectPtr<UUnitStateTreeAIComponent> UnitStateTreeAIComponent;
+
 protected:
-	// Called when the game starts or when spawned
+	// Called when the game begins or this controller is spawned
 	virtual void BeginPlay() override;
+
+	// You may later override Tick() or Possess() here for advanced logic
 };
