@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Core Unit class used for RTS characters with Ability System integration
 
 #pragma once
 
@@ -8,56 +8,69 @@
 #include "BehaviorTree/BehaviorTree.h"
 #include "Unit.generated.h"
 
-// forward declarations of the gameplay ability system classes
+// Forward declarations for performance (instead of full includes)
 class UAOWAbilitySystemComponent;
 class UAOWAttributeSet;
 class UGameplayAbility;
 class UGameplayEffect;
 
+/**
+ * AUnit
+ * Base RTS Unit class that integrates GAS (Gameplay Ability System), attributes, and AI.
+ */
 UCLASS()
-class ASHESOFWAR_API AUnit : public ACharacter, public IAbilitySystemInterface{
-  GENERATED_BODY()
+class ASHESOFWAR_API AUnit : public ACharacter, public IAbilitySystemInterface
+{
+	GENERATED_BODY()
 
 public:
-  // Sets default values for this character's properties
-  AUnit();
-  // Subclass of AUnit can modify this function to customize in Blueprint or C++
-  UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Initialization")
-  // blueprint
-  void OnBeginPlay();
-  // C++
-  virtual void OnBeginPlay_Implementation();
+	// Constructor – sets default values
+	AUnit();
 
-  // Implement IAbilitySystemInterface
-  virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
-  // End of implementation of IAbilitySystemInterface
-  virtual UAOWAttributeSet* GetAttributeSet() const;
+	// Called after BeginPlay for child classes to override logic
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Initialization")
+	void OnBeginPlay();
+	virtual void OnBeginPlay_Implementation();
 
-  UFUNCTION(BlueprintCallable)
-  void MoveToLocation(FVector TargetLocation);
+	// GAS interface requirement
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-  UFUNCTION(BlueprintCallable)
-  void StopMovement();
+	// Custom getter for this unit's attribute set
+	virtual UAOWAttributeSet* GetAttributeSet() const;
+
+	// Order unit to move to a given location (called via script/AI/blueprint)
+	UFUNCTION(BlueprintCallable)
+	void MoveToLocation(FVector TargetLocation);
+
+	// Stop the unit's current movement
+	UFUNCTION(BlueprintCallable)
+	void StopMovement();
+
 protected:
-  // Begin play to initialize the Ability and Attribute
-  virtual void BeginPlay() override;
-  // Give the ability to a unit should be done in the server
-  void GiveDefaultAbilities();
-  // Initialize the default abilities of the unit, Can be s
-  void InitDefaultAttributes();
+	// BeginPlay override to initialize GAS and custom attributes
+	virtual void BeginPlay() override;
 
-  // the reference to the ability system objects
-  UPROPERTY(EditDefaultsOnly, Category = "Ability", meta = (AllowPrivateAccess = "true"))
-  TObjectPtr<UAOWAbilitySystemComponent> AbilitySystemComponent;
-  UPROPERTY(EditDefaultsOnly, Category = "Attribute", meta = (AllowPrivateAccess = "true"))
-  TObjectPtr<UAOWAttributeSet> AttributeSet;
+	// Grants the default gameplay abilities to the unit
+	void GiveDefaultAbilities();
 
-  // Can be set in the editor to assign default abilities to the unit
-  UPROPERTY(EditDefaultsOnly, Category = "Ability")
-  TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
+	// Initializes unit stats (health, speed, etc.) using a default effect
+	void InitDefaultAttributes();
 
-  // The default attribute effect to apply to the unit(initialize the attributes)
-  UPROPERTY(EditDefaultsOnly, Category = "Ability")
-  TSubclassOf<UGameplayEffect> DefaultAttributeEffect;
-  
+	// --- GAS Components ---
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ability", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAOWAbilitySystemComponent> AbilitySystemComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Attribute", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAOWAttributeSet> AttributeSet;
+
+	// --- GAS Definitions (Editor-configurable) ---
+
+	// Abilities given to the unit on spawn
+	UPROPERTY(EditDefaultsOnly, Category = "Ability")
+	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
+
+	// Initial attribute modifier effect (e.g., sets default HP, Speed, Damage)
+	UPROPERTY(EditDefaultsOnly, Category = "Ability")
+	TSubclassOf<UGameplayEffect> DefaultAttributeEffect;
 };

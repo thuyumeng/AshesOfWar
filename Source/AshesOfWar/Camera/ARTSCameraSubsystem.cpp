@@ -5,17 +5,19 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 
+// Constructor: initializes default values for camera behavior
 UARTSCameraSubsystem::UARTSCameraSubsystem()
     : CameraComponent(nullptr),
-    SpringArmComponent(nullptr),
-    PlayerController(nullptr),
-    CameraSpeed(2000.0f), // Increased for a more responsive movement
-    ZoomSpeed(100.0f),
-    MinZoom(500.0f),
-    MaxZoom(3000.0f)
+      SpringArmComponent(nullptr),
+      PlayerController(nullptr),
+      CameraSpeed(2000.0f),
+      ZoomSpeed(100.0f),
+      MinZoom(500.0f),
+      MaxZoom(3000.0f)
 {
 }
 
+// Called once when the world is initialized
 void UARTSCameraSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
     Super::Initialize(Collection);
@@ -27,10 +29,11 @@ void UARTSCameraSubsystem::Initialize(FSubsystemCollectionBase& Collection)
         return;
     }
 
-    // Try retrieving the PlayerController immediately
+    // Try to immediately get the PlayerController
     PlayerController = World->GetFirstPlayerController();
     if (!PlayerController)
     {
+        // Retry after a short delay if the controller isn't ready yet
         UE_LOG(LogTemp, Warning, TEXT("PlayerController not found, retrying after delay..."));
         FTimerHandle TimerHandle;
         World->GetTimerManager().SetTimer(TimerHandle, this, &UARTSCameraSubsystem::TryRetrievePlayerController, 1.0f, false);
@@ -40,6 +43,7 @@ void UARTSCameraSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     ConfigureCamera();
 }
 
+// Retry method to get the PlayerController if it's not available immediately
 void UARTSCameraSubsystem::TryRetrievePlayerController()
 {
     UWorld* World = GetWorld();
@@ -55,6 +59,7 @@ void UARTSCameraSubsystem::TryRetrievePlayerController()
     ConfigureCamera();
 }
 
+// Creates and sets up the camera and spring arm for RTS-style control
 void UARTSCameraSubsystem::ConfigureCamera()
 {
     if (!PlayerController)
@@ -63,11 +68,10 @@ void UARTSCameraSubsystem::ConfigureCamera()
         return;
     }
 
-    // Retrieve the actor that will own the camera
-    AActor* CameraOwner = PlayerController->GetPawn();
+    AActor* CameraOwner = PlayerController->GetPawn(); // Prefer pawn if available
     if (!CameraOwner)
     {
-        CameraOwner = PlayerController; // Fallback to PlayerController itself
+        CameraOwner = PlayerController; // Fallback to the controller
     }
 
     if (!CameraOwner)
@@ -76,7 +80,7 @@ void UARTSCameraSubsystem::ConfigureCamera()
         return;
     }
 
-    // Create camera components
+    // Dynamically create spring arm and camera components
     SpringArmComponent = NewObject<USpringArmComponent>(CameraOwner);
     CameraComponent = NewObject<UCameraComponent>(CameraOwner);
 
@@ -86,29 +90,30 @@ void UARTSCameraSubsystem::ConfigureCamera()
         return;
     }
 
-    // Attach camera components
+    // Attach the camera setup to the actor
     SpringArmComponent->SetupAttachment(CameraOwner->GetRootComponent());
     CameraComponent->SetupAttachment(SpringArmComponent);
 
-    // Register components
+    // Register the components with the engine
     SpringArmComponent->RegisterComponent();
     CameraComponent->RegisterComponent();
 
-    // Configure spring arm settings
+    // Set up spring arm defaults
     SpringArmComponent->TargetArmLength = 2500.0f;
     SpringArmComponent->bDoCollisionTest = false;
     SpringArmComponent->SetRelativeRotation(FRotator(-60.0f, 0.0f, 0.0f));
 
-    // Set the camera as the main view target
+    // Set this camera as the main view target
     PlayerController->SetViewTargetWithBlend(CameraOwner);
 
-    // Enable user input
+    // Setup player input mode and mouse options
     PlayerController->SetInputMode(FInputModeGameOnly());
     PlayerController->bEnableClickEvents = true;
     PlayerController->bEnableMouseOverEvents = true;
     PlayerController->bShowMouseCursor = true;
 }
 
+// Called every frame by the game loop (manually invoked)
 void UARTSCameraSubsystem::UpdateCamera(float DeltaTime)
 {
     if (!CameraComponent)
@@ -119,6 +124,7 @@ void UARTSCameraSubsystem::UpdateCamera(float DeltaTime)
 
     MoveCamera(DeltaTime);
 
+    // Get scroll wheel input and apply zoom
     if (PlayerController)
     {
         float ScrollValue = PlayerController->GetInputAnalogKeyState(EKeys::MouseWheelAxis);
@@ -126,6 +132,7 @@ void UARTSCameraSubsystem::UpdateCamera(float DeltaTime)
     }
 }
 
+// Handles WASD movement in the world based on camera direction
 void UARTSCameraSubsystem::MoveCamera(float DeltaTime)
 {
     if (!PlayerController || !CameraComponent)
@@ -136,29 +143,17 @@ void UARTSCameraSubsystem::MoveCamera(float DeltaTime)
 
     FVector MoveDirection = FVector::ZeroVector;
 
-    // Projecting the camera forward/right vectors onto the XY plane to prevent unintended vertical movement
+    // Project camera direction onto XY plane (avoid vertical movement)
     FVector CameraForward = FVector(CameraComponent->GetForwardVector().X, CameraComponent->GetForwardVector().Y, 0).GetSafeNormal();
     FVector CameraRight = FVector(CameraComponent->GetRightVector().X, CameraComponent->GetRightVector().Y, 0).GetSafeNormal();
 
-    // Movement inputs
-    if (PlayerController->IsInputKeyDown(EKeys::W))
-    {
-        MoveDirection += CameraForward;
-    }
-    if (PlayerController->IsInputKeyDown(EKeys::S))
-    {
-        MoveDirection -= CameraForward;
-    }
-    if (PlayerController->IsInputKeyDown(EKeys::A))
-    {
-        MoveDirection -= CameraRight;
-    }
-    if (PlayerController->IsInputKeyDown(EKeys::D))
-    {
-        MoveDirection += CameraRight;
-    }
+    // Detect movement input
+    if (PlayerController->IsInputKeyDown(EKeys::W)) MoveDirection += CameraForward;
+    if (PlayerController->IsInputKeyDown(EKeys::S)) MoveDirection -= CameraForward;
+    if (PlayerController->IsInputKeyDown(EKeys::A)) MoveDirection -= CameraRight;
+    if (PlayerController->IsInputKeyDown(EKeys::D)) MoveDirection += CameraRight;
 
-    // Apply movement if input exists
+    // Apply camera movement
     if (!MoveDirection.IsNearlyZero())
     {
         FVector NewLocation = CameraComponent->GetOwner()->GetActorLocation() + (MoveDirection * CameraSpeed * DeltaTime);
@@ -166,6 +161,7 @@ void UARTSCameraSubsystem::MoveCamera(float DeltaTime)
     }
 }
 
+// Zooms the camera in/out based on mouse scroll input
 void UARTSCameraSubsystem::ZoomCamera(float AxisValue)
 {
     if (FMath::Abs(AxisValue) > KINDA_SMALL_NUMBER)
@@ -176,11 +172,13 @@ void UARTSCameraSubsystem::ZoomCamera(float AxisValue)
     }
 }
 
+// Returns the current camera component (used for access in other systems)
 UCameraComponent* UARTSCameraSubsystem::GetCameraComponent() const
 {
     return CameraComponent;
 }
 
+// Cleans up and unregisters the camera components when the subsystem is shut down
 void UARTSCameraSubsystem::Deinitialize()
 {
     if (CameraComponent)

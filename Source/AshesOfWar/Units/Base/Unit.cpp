@@ -1,104 +1,113 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "Unit.h"
 
-#include "AshesOfWar/Ability/AOWAbilitySystemComponent.h"
-#include "AshesOfWar/Ability/AOWAttributeSet.h"
+// GAS and AI includes
+#include "AshesOfWar/Ability/Base/AOWAbilitySystemComponent.h"
+#include "AshesOfWar/Ability/Base/AOWAttributeSet.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
+
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
-// Sets default values
-AUnit::AUnit() {
-  PrimaryActorTick.bCanEverTick = true;
+// Constructor – initialize GAS components
+AUnit::AUnit()
+{
+	PrimaryActorTick.bCanEverTick = true;
 
-  AbilitySystemComponent = CreateDefaultSubobject<UAOWAbilitySystemComponent>("AbilitySystemComponent");
-  AttributeSet = CreateDefaultSubobject<UAOWAttributeSet>("AttributeSet");
+	// Initialize Ability System and Attribute Set as default subobjects
+	AbilitySystemComponent = CreateDefaultSubobject<UAOWAbilitySystemComponent>("AbilitySystemComponent");
+	AttributeSet = CreateDefaultSubobject<UAOWAttributeSet>("AttributeSet");
 }
 
+// BlueprintNativeEvent override – can be implemented in C++ or Blueprint
 void AUnit::OnBeginPlay_Implementation()
 {
-  UE_LOG(LogTemp, Warning, TEXT("OnBeginPlay_Implementation"));
+	UE_LOG(LogTemp, Warning, TEXT("OnBeginPlay_Implementation"));
 }
 
+// Called when the unit spawns in the world
 void AUnit::BeginPlay()
 {
-  Super::BeginPlay();
+	Super::BeginPlay();
 
-  // Initialize the ability system component
-  AbilitySystemComponent->InitAbilityActorInfo(this, this);
-  // Give the ability to a unit should be done in the server
-  GiveDefaultAbilities();
-  // Initialize the default attributes of the unit
-  InitDefaultAttributes();
-  
-  // After setting up the ability system component and the AI controller, call the OnBeginPlay function in child class
-  // to customize the unit, this function can be overridden in the blueprint and C++
-  OnBeginPlay();
+	// Initialize GAS with this unit as both owner and avatar
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
+
+	// Grant base abilities and attributes (server-side logic)
+	GiveDefaultAbilities();
+	InitDefaultAttributes();
+
+	// Hook for child Blueprint or C++ to execute additional logic
+	OnBeginPlay();
 }
 
+// GAS interface requirement – gives access to this unit's AbilitySystemComponent
 UAbilitySystemComponent* AUnit::GetAbilitySystemComponent() const
 {
-  return AbilitySystemComponent;
+	return AbilitySystemComponent;
 }
 
+// Custom getter to access this unit's AttributeSet
 UAOWAttributeSet* AUnit::GetAttributeSet() const
 {
-  return AttributeSet;
+	return AttributeSet;
 }
 
+// Called to move the unit to a specified world location
 void AUnit::MoveToLocation(FVector TargetLocation)
 {
-  if (AAIController* AIController = Cast<AAIController>(GetController()))
-  {
-    // set the speed of the unit to the speed unit, and move to the target location
-    GetCharacterMovement()->MaxWalkSpeed = NUMERIC_VALUE(AttributeSet, Speed);
-    AIController->MoveToLocation(TargetLocation);
-  }
+	if (AAIController* AIController = Cast<AAIController>(GetController()))
+	{
+		// Apply current unit speed from AttributeSet
+		GetCharacterMovement()->MaxWalkSpeed = NUMERIC_VALUE(AttributeSet, Speed);
+
+		// Order movement to location using AI navigation
+		AIController->MoveToLocation(TargetLocation);
+	}
 }
 
+// Halts movement of the unit using AIController
 void AUnit::StopMovement()
 {
-  if (AAIController* AIController = Cast<AAIController>(GetController()))
-  {
-    AIController->StopMovement();
-  }
+	if (AAIController* AIController = Cast<AAIController>(GetController()))
+	{
+		AIController->StopMovement();
+	}
 }
 
+// Grants abilities listed in DefaultAbilities to the unit
 void AUnit::GiveDefaultAbilities()
 {
-  check(AbilitySystemComponent);
+	check(AbilitySystemComponent);
 
-  // should check if it is the server
-  // if (!HasAuthority()) return;
+	// ❗ Optional: Only run on the server
+	// if (!HasAuthority()) return;
 
-  // give the default abilities to the unit and initialize them with level 1
-  for (TSubclassOf<UGameplayAbility> AbilityClass : DefaultAbilities)
-  {
-    int32 InitLevel = 1;
-    const FGameplayAbilitySpec AbilitySpec(AbilityClass, InitLevel);
-    AbilitySystemComponent->GiveAbility(AbilitySpec);
-  }
+	for (TSubclassOf<UGameplayAbility> AbilityClass : DefaultAbilities)
+	{
+		int32 InitLevel = 1; // Default level (can be dynamic later)
+		const FGameplayAbilitySpec AbilitySpec(AbilityClass, InitLevel);
+		AbilitySystemComponent->GiveAbility(AbilitySpec);
+	}
 }
 
+// Applies the default gameplay effect that initializes unit stats (e.g., HP, Damage, Speed)
 void AUnit::InitDefaultAttributes()
 {
-  // Use the DefaultAttributeEffect to initialize the attributes of the unit
-  // This would 
-  if (!AbilitySystemComponent || !DefaultAttributeEffect) return;
+	if (!AbilitySystemComponent || !DefaultAttributeEffect) return;
 
-  FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
-  EffectContext.AddSourceObject(this);
+	// Create context and spec for the gameplay effect
+	FGameplayEffectContextHandle EffectContext = AbilitySystemComponent->MakeEffectContext();
+	EffectContext.AddSourceObject(this);
 
-  float Level =  1.0f;
-  const FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
-    DefaultAttributeEffect, Level, EffectContext);
+	float Level = 1.0f; // Initial effect level
 
-  if (SpecHandle.IsValid())
-  {
-    AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
-  }
+	const FGameplayEffectSpecHandle SpecHandle = AbilitySystemComponent->MakeOutgoingSpec(
+		DefaultAttributeEffect, Level, EffectContext);
+
+	// Apply the effect to self
+	if (SpecHandle.IsValid())
+	{
+		AbilitySystemComponent->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+	}
 }
-
-

@@ -7,78 +7,75 @@
 #include "AttributeSet.h"
 #include "AOWAttributeSet.generated.h"
 
-/**
- * This defines a set of helper functions for accessing and initializing attributes, to avoid having to manually write these functions.
- * It would creates the following functions, for attribute Health
- *
- *	static FGameplayAttribute UMyHealthSet::GetHealthAttribute();
- *	FORCEINLINE float UMyHealthSet::GetHealth() const;
- *	FORCEINLINE void UMyHealthSet::SetHealth(float NewVal);
- *	FORCEINLINE void UMyHealthSet::InitHealth(float NewVal);
- *
- * To use this in your game you can define something like this, and then add game-specific functions as necessary:
- * 
- *	#define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
- *	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
- *	GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
- *	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
- *	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
- * 
- *	ATTRIBUTE_ACCESSORS(UMyHealthSet, Health)
- */
+// Macro that simplifies the declaration of accessor functions for attributes.
+// Example: ATTRIBUTE_ACCESSORS(UMyAttributeSet, Health) creates:
+// - static FGameplayAttribute GetHealthAttribute();
+// - float GetHealth() const;
+// - void SetHealth(float NewVal);
+// - void InitHealth(float NewVal);
 #define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
 GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
 GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
 GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
 GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
 
-// Get the numeric value of an attribute set property
-//
+// Gets the raw numeric value of an attribute from an attribute set instance
 #define NUMERIC_VALUE(AttributeSetName, PropertyName) \
 AttributeSetName->Get##PropertyName##Attribute().GetNumericValue(AttributeSetName)
 
+/**
+ * UAOWAttributeSet
+ * Core set of gameplay attributes (e.g., Health, Speed, Damage) replicated and used by gameplay abilities and effects.
+ */
 UCLASS()
 class ASHESOFWAR_API UAOWAttributeSet : public UAttributeSet
 {
 	GENERATED_BODY()
+
 public:
+	// Constructor
 	UAOWAttributeSet();
 
-	// must override this or ubt will generate a declaration of this function and it will cause a compile error
+	// Required for replication of attributes
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	// Attribute change callbacks
+
+	// Called before modifying an attribute (can be used to clamp or preprocess values)
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+
+	// Called after an effect modifies an attribute (ideal for post-processing, clamping, logic)
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
-	// Health
+	// ------------ Health Attributes ------------
+
+	// Current Health
 	UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UAOWAttributeSet, Health)
 
-	// Max Health
+	// Maximum Health
 	UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_MaxHealth)
 	FGameplayAttributeData MaxHealth;
 	ATTRIBUTE_ACCESSORS(UAOWAttributeSet, MaxHealth)
 
-	// Health Regen
+	// Health Regeneration Rate (e.g., per second)
 	UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_HealthRegen)
 	FGameplayAttributeData HealthRegen;
 	ATTRIBUTE_ACCESSORS(UAOWAttributeSet, HealthRegen)
 
-	// Speed
+	// ------------ Movement ------------
+
 	UPROPERTY(BlueprintReadOnly, Category = "Speed", ReplicatedUsing = OnRep_Speed)
 	FGameplayAttributeData Speed;
 	ATTRIBUTE_ACCESSORS(UAOWAttributeSet, Speed)
-	
-	// Attack Damage
+
+	// ------------ Damage ------------
+
 	UPROPERTY(BlueprintReadOnly, Category = "Damage", ReplicatedUsing = OnRep_AttackDamage)
 	FGameplayAttributeData AttackDamage;
 	ATTRIBUTE_ACCESSORS(UAOWAttributeSet, AttackDamage)
 
-	// TODO Add more attributes here
+	// ------------ Replication Notification ------------
 
-	// The Replication Notification functions, used to notify the replication of the attributes
-	// perhaps this is too much network data, we should consider using a more efficient way to replicate the attributes
 	UFUNCTION()
 	void OnRep_Health(const FGameplayAttributeData& OldHealth) const;
 
