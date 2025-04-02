@@ -2,8 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
-#include "AshesOfWar/Resources/ResourceTypes/FPlayerResourceData.h"
-#include "AshesOfWar/Resources/ResourceTypes/EResourceType.h"
+#include "AshesOfWar/Resources/ResourcesTypes/FPlayerResourceData.h"
+#include "AshesOfWar/Resources/ResourcesTypes/EResourceType.h"
 #include "UResourceLibrary.generated.h"
 
 /**

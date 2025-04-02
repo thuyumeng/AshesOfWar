@@ -8,7 +8,7 @@
  * Contains the amount of each resource type: Aetherium, Vitae, and Umbra.
  */
 USTRUCT(BlueprintType)
-struct RTS_EPICCONQUEST_API FPlayerResourceData
+struct ASHESOFWAR_API FPlayerResourceData
 {
 	GENERATED_BODY()
 
