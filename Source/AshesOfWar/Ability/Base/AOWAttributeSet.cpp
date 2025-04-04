@@ -8,6 +8,11 @@
 UAOWAttributeSet::UAOWAttributeSet()
 {
     // No initialization needed for now; all attributes use default constructors
+    Health = 100.f;
+    MaxHealth = 10000.f;
+    HealthRegen = 10.f;
+    Speed = 500.f;
+    AttackDamage = 10.f;
 }
 
 // Sets up replication for the attributes

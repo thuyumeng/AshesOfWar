@@ -5,9 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
-#include "BehaviorTree/BehaviorTree.h"
+#include "AshesOfWar/Units/Interface/AOWInputInterface.h"
 #include "Unit.generated.h"
 
+
+// Input interface for unit selection and control
+class IAOWInputInterface;
 // Forward declarations for performance (instead of full includes)
 class UAOWAbilitySystemComponent;
 class UAOWAttributeSet;
@@ -19,7 +22,7 @@ class UGameplayEffect;
  * Base RTS Unit class that integrates GAS (Gameplay Ability System), attributes, and AI.
  */
 UCLASS()
-class ASHESOFWAR_API AUnit : public ACharacter, public IAbilitySystemInterface
+class ASHESOFWAR_API AUnit : public ACharacter, public IAbilitySystemInterface, public IAOWInputInterface
 {
 	GENERATED_BODY()
 
@@ -45,6 +48,9 @@ public:
 	// Stop the unit's current movement
 	UFUNCTION(BlueprintCallable)
 	void StopMovement();
+
+	// Interface function to get selected units (for input handling)
+	virtual TArray<TObjectPtr<AUnit>> GetSelectedUnits() const override;
 
 protected:
 	// BeginPlay override to initialize GAS and custom attributes

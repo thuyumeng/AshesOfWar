@@ -5,9 +5,8 @@
 #include "AshesOfWar/Ability/Base/AOWAttributeSet.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
 
-#include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
+
 
 // Constructor – initialize GAS components
 AUnit::AUnit()
@@ -59,6 +58,7 @@ void AUnit::MoveToLocation(FVector TargetLocation)
 	if (AAIController* AIController = Cast<AAIController>(GetController()))
 	{
 		// Apply current unit speed from AttributeSet
+		// Notice: must be walkable character skeletal mesh, not a static mesh!!!
 		GetCharacterMovement()->MaxWalkSpeed = NUMERIC_VALUE(AttributeSet, Speed);
 
 		// Order movement to location using AI navigation
@@ -73,6 +73,12 @@ void AUnit::StopMovement()
 	{
 		AIController->StopMovement();
 	}
+}
+
+TArray<TObjectPtr<AUnit>> AUnit::GetSelectedUnits() const
+{
+	TArray<TObjectPtr<AUnit>> SelectedUnits;
+	return SelectedUnits;
 }
 
 // Grants abilities listed in DefaultAbilities to the unit
