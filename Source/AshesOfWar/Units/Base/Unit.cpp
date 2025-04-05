@@ -52,6 +52,16 @@ UAOWAttributeSet* AUnit::GetAttributeSet() const
 	return AttributeSet;
 }
 
+TObjectPtr<AUnitAIController> AUnit::GetAIController() const
+{
+	const APawn* AsPawn = Cast<APawn>(this);
+	if (AsPawn != nullptr)
+	{
+		return Cast<AUnitAIController>(AsPawn->GetController());
+	}
+	return nullptr;
+}
+
 // Called to move the unit to a specified world location
 void AUnit::MoveToLocation(FVector TargetLocation)
 {
@@ -73,12 +83,6 @@ void AUnit::StopMovement()
 	{
 		AIController->StopMovement();
 	}
-}
-
-TArray<TObjectPtr<AUnit>> AUnit::GetSelectedUnits() const
-{
-	TArray<TObjectPtr<AUnit>> SelectedUnits;
-	return SelectedUnits;
 }
 
 // Grants abilities listed in DefaultAbilities to the unit
