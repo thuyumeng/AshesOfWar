@@ -4,10 +4,10 @@
 #include "BaseMinerToResourceTask.h"
 #include "AshesOfWar/Units/Ore/Ore.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
-#include "AshesOfWar/Units/Miner/Miner.h"
 #include "Kismet/GameplayStatics.h"
 #include "StateTreeExecutionContext.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "AshesOfWar/Resources/Nodes/AResourceNode.h"
 
 
 UBaseMinerToResourceTask::UBaseMinerToResourceTask()
@@ -34,12 +34,9 @@ void UBaseMinerToResourceTask::MoveToNearestResource()
 {
 	if (AIController)
 	{
-		// bind the OnMoveCompleted function to the AI controller
-		AIController->ReceiveMoveCompleted.AddDynamic(
-			this, &UBaseMinerToResourceTask::OnMoveCompleted);
 		// find the nearest resource
 		TArray<AActor*> Resources;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AOre::StaticClass(), Resources);
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AAResourceNode::StaticClass(), Resources);
 		if (Resources.Num() > 0)
 		{
 			// move to the nearest resource
@@ -55,7 +52,6 @@ void UBaseMinerToResourceTask::MoveToNearestResource()
 EStateTreeRunStatus UBaseMinerToResourceTask::EnterState(FStateTreeExecutionContext& Context,
                                                          const FStateTreeTransitionResult& Transition)
 {
-	AIController = Cast<AUnitAIController>(Context.GetOwner());
 	// find the nearest resource and move to it
 	MoveToNearestResource();
 	return Super::EnterState(Context, Transition);

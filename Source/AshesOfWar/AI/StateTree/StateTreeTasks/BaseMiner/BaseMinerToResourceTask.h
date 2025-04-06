@@ -29,6 +29,6 @@ protected:
 	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) override;
 private:
 	// the miner that is going to the resource
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AIController", meta=(AllowPrivateAccess=true))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Context", meta=(AllowPrivateAccess=true))
 	TObjectPtr<AUnitAIController> AIController;
 };
