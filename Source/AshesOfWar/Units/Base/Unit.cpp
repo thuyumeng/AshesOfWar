@@ -4,6 +4,7 @@
 #include "AshesOfWar/Ability/Base/AOWAbilitySystemComponent.h"
 #include "AshesOfWar/Ability/Base/AOWAttributeSet.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
+#include "AshesOfWar/AI/StateTree/UnitStateTreeAIComponent.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -36,7 +37,24 @@ void AUnit::BeginPlay()
 	GiveDefaultAbilities();
 	InitDefaultAttributes();
 
-	// Hook for child Blueprint or C++ to execute additional logic
+	// check if the unit has a valid AI controller
+	AUnitAIController* AIController = GetAIController();
+	if (!AIController)
+	{
+		// create a new AI controller if none exists
+		AIController = GetWorld()->SpawnActor<AUnitAIController>(AUnitAIController::StaticClass(), GetActorLocation(), GetActorRotation());
+		if (AIController)
+		{
+			// Possess the unit with the new AI controller
+			AIController->Possess(this);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to spawn AIController for unit!"));
+			return;
+		}
+	}
+	
 	OnBeginPlay();
 }
 

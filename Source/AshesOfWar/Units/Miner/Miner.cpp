@@ -23,13 +23,14 @@ void AMiner::OnBeginPlay_Implementation()
 			// load the state tree asset
 			TObjectPtr<UStateTree> StateTree = LoadObject<UStateTree>(
 				nullptr,
-				TEXT("StateTree'/Game/AI/StateTrees/MinerStateTree.MinerStateTree'"));
+				TEXT("/Script/StateTreeModule.StateTree'/Game/Blueprints/Units/AI/StateTree/Base/ST_BaseMiner.ST_BaseMiner'"));
 			if (!StateTree)
 			{
 				UE_LOG(LogTemp, Error, TEXT("Miner::OnBeginPlay_Implementation: StateTree is null"));
 				return;
 			}
 			StateTreeAIComponent->SetStateTree(StateTree);
+			StateTreeAIComponent->StartLogic();
 		}
 		else
 		{
