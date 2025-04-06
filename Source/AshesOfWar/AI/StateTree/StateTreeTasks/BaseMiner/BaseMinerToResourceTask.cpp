@@ -55,6 +55,7 @@ void UBaseMinerToResourceTask::MoveToNearestResource()
 EStateTreeRunStatus UBaseMinerToResourceTask::EnterState(FStateTreeExecutionContext& Context,
                                                          const FStateTreeTransitionResult& Transition)
 {
+	AIController = Cast<AUnitAIController>(Context.GetOwner());
 	// find the nearest resource and move to it
 	MoveToNearestResource();
 	return Super::EnterState(Context, Transition);
