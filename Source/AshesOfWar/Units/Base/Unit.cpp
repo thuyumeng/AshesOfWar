@@ -4,6 +4,7 @@
 #include "AshesOfWar/Ability/Base/AOWAbilitySystemComponent.h"
 #include "AshesOfWar/Ability/Base/AOWAttributeSet.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
+#include "AshesOfWar/AI/StateTree/UnitStateTreeAIComponent.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -36,7 +37,24 @@ void AUnit::BeginPlay()
 	GiveDefaultAbilities();
 	InitDefaultAttributes();
 
-	// Hook for child Blueprint or C++ to execute additional logic
+	// check if the unit has a valid AI controller
+	AUnitAIController* AIController = GetAIController();
+	if (!AIController)
+	{
+		// create a new AI controller if none exists
+		AIController = GetWorld()->SpawnActor<AUnitAIController>(AUnitAIController::StaticClass(), GetActorLocation(), GetActorRotation());
+		if (AIController)
+		{
+			// Possess the unit with the new AI controller
+			AIController->Possess(this);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("Failed to spawn AIController for unit!"));
+			return;
+		}
+	}
+	
 	OnBeginPlay();
 }
 
@@ -50,6 +68,16 @@ UAbilitySystemComponent* AUnit::GetAbilitySystemComponent() const
 UAOWAttributeSet* AUnit::GetAttributeSet() const
 {
 	return AttributeSet;
+}
+
+TObjectPtr<AUnitAIController> AUnit::GetAIController() const
+{
+	const APawn* AsPawn = Cast<APawn>(this);
+	if (AsPawn != nullptr)
+	{
+		return Cast<AUnitAIController>(AsPawn->GetController());
+	}
+	return nullptr;
 }
 
 // Called to move the unit to a specified world location
@@ -73,12 +101,6 @@ void AUnit::StopMovement()
 	{
 		AIController->StopMovement();
 	}
-}
-
-TArray<TObjectPtr<AUnit>> AUnit::GetSelectedUnits() const
-{
-	TArray<TObjectPtr<AUnit>> SelectedUnits;
-	return SelectedUnits;
 }
 
 // Grants abilities listed in DefaultAbilities to the unit

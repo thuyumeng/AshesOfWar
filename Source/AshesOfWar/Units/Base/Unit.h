@@ -16,6 +16,7 @@ class UAOWAbilitySystemComponent;
 class UAOWAttributeSet;
 class UGameplayAbility;
 class UGameplayEffect;
+class AUnitAIController;
 
 /**
  * AUnit
@@ -41,6 +42,9 @@ public:
 	// Custom getter for this unit's attribute set
 	virtual UAOWAttributeSet* GetAttributeSet() const;
 
+	// Get the unit's ai controller
+	TObjectPtr<AUnitAIController> GetAIController() const;
+
 	// Order unit to move to a given location (called via script/AI/blueprint)
 	UFUNCTION(BlueprintCallable)
 	void MoveToLocation(FVector TargetLocation);
@@ -48,9 +52,6 @@ public:
 	// Stop the unit's current movement
 	UFUNCTION(BlueprintCallable)
 	void StopMovement();
-
-	// Interface function to get selected units (for input handling)
-	virtual TArray<TObjectPtr<AUnit>> GetSelectedUnits() const override;
 
 protected:
 	// BeginPlay override to initialize GAS and custom attributes

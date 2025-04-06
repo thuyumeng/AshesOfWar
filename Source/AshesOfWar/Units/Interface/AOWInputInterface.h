@@ -24,5 +24,4 @@ class ASHESOFWAR_API IAOWInputInterface
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	virtual TArray<TObjectPtr<AUnit>> GetSelectedUnits() const = 0;
 };

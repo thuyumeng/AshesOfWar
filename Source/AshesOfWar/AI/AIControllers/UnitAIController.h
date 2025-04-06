@@ -26,6 +26,12 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI")
 	TObjectPtr<UUnitStateTreeAIComponent> UnitStateTreeAIComponent;
 
+	// Function to get the StateTree component
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	UUnitStateTreeAIComponent* GetUnitStateTreeAIComponent() const
+	{
+		return UnitStateTreeAIComponent;
+	}
 protected:
 	// Called when the game begins or this controller is spawned
 	virtual void BeginPlay() override;
