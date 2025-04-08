@@ -6,7 +6,7 @@ AUnitAIController::AUnitAIController(const FObjectInitializer& ObjectInitializer
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Crée et attache le composant StateTree avec un nom cohérent
+	// Create and attach the StateTree component
 	UnitStateTreeAIComponent = CreateDefaultSubobject<UUnitStateTreeAIComponent>(TEXT("UnitStateTreeAIComponent"));
 }
 
@@ -14,10 +14,10 @@ void AUnitAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Log de debug utile
+	// Error log if the AI component is missing (should never happen)
 	if (!UnitStateTreeAIComponent)
 	{
-		UE_LOG(LogTemp, Error, TEXT("UnitAIController: Le composant UnitStateTreeAIComponent est null !"));
+		UE_LOG(LogTemp, Error, TEXT("UnitAIController: UnitStateTreeAIComponent is null!"));
 	}
 }
 

@@ -11,7 +11,7 @@ class UStateTree;
 
 /**
  * AMiner
- * Classe de base pour toutes les unités pouvant récolter ou construire.
+ * Base class for all units that can gather resources or construct buildings.
  */
 UCLASS()
 class ASHESOFWAR_API AMiner : public AUnit
@@ -19,43 +19,43 @@ class ASHESOFWAR_API AMiner : public AUnit
 	GENERATED_BODY()
 
 public:
-	// Constructeur
+	// Constructor
 	AMiner();
 
 protected:
-	// Appelé après BeginPlay
+	// Called after BeginPlay
 	virtual void OnBeginPlay_Implementation() override;
 
 public:
-	// Déclenche la récolte de ressources
+	// Starts mining the current resource node
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void MineResource();
 
-	// Arrête la récolte de ressources
+	// Stops the current mining operation
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void StopMining();
 
-	// Dépose les ressources dans une structure (fonctionnalité à compléter)
+	// Deposits currently carried resources into a valid structure (to be implemented)
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void DepositCollectedResources();
 
-	// Définit le node de ressource actuel
+	// Sets the resource node to be mined
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void SetCurrentResourceNode(AAResourceNode* NewNode);
 
-	// Accès au composant de ressource
+	// Returns the resource component of this unit
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	UResourceComponent* GetResourceComponent() const;
 
-	// Fonction appelée à chaque frame
+	// Tick logic to trigger mining automatically
 	virtual void Tick(float DeltaTime) override;
 
 private:
-	// Composant gérant la logique de récolte
+	// Component handling resource gathering logic
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Resource", meta = (AllowPrivateAccess = "true"))
 	UResourceComponent* ResourceComponent;
 
-	// Référence éditable au StateTree de cette unité
+	// Reference to the StateTree asset used for AI behavior
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	UStateTree* MinerStateTreeAsset;
 };

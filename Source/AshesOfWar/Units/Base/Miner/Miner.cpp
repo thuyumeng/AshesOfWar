@@ -9,7 +9,7 @@ AMiner::AMiner()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Création du composant de ressource (non attaché à la hiérarchie de scène)
+	// Create the resource component (not attached to scene hierarchy)
 	ResourceComponent = CreateDefaultSubobject<UResourceComponent>(TEXT("ResourceComponent"));
 }
 
@@ -17,36 +17,35 @@ void AMiner::OnBeginPlay_Implementation()
 {
 	Super::OnBeginPlay_Implementation();
 
-	UE_LOG(LogTemp, Warning, TEXT("[Miner] Début de OnBeginPlay_Implementation"));
-
 	AUnitAIController* AIController = GetAIController();
 	if (!AIController)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[Miner] AIController est null"));
+		UE_LOG(LogTemp, Error, TEXT("[Miner] Missing AIController"));
 		return;
 	}
 
 	UUnitStateTreeAIComponent* StateTreeAIComponent = AIController->GetUnitStateTreeAIComponent();
 	if (!StateTreeAIComponent)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[Miner] StateTreeAIComponent est null"));
+		UE_LOG(LogTemp, Error, TEXT("[Miner] Missing StateTreeAIComponent"));
 		return;
 	}
 
 	if (!MinerStateTreeAsset)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[Miner] StateTree est null (non assigné dans le BP)"));
+		UE_LOG(LogTemp, Error, TEXT("[Miner] No StateTree asset assigned"));
 		return;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("[Miner] StateTree assigné : %s"), *MinerStateTreeAsset->GetName());
+	// Log important for debugging StateTree assignment
+	UE_LOG(LogTemp, Log, TEXT("[Miner] Assigned StateTree: %s"), *MinerStateTreeAsset->GetName());
 
+	// Assign and start StateTree AI logic
 	StateTreeAIComponent->SetStateTree(MinerStateTreeAsset);
 	StateTreeAIComponent->StartLogic();
 
-	UE_LOG(LogTemp, Log, TEXT("[Miner] IA StateTree démarrée avec succès"));
+	UE_LOG(LogTemp, Log, TEXT("[Miner] StateTree AI logic successfully started"));
 }
-
 
 void AMiner::Tick(float DeltaTime)
 {
@@ -54,6 +53,7 @@ void AMiner::Tick(float DeltaTime)
 
 	if (!ResourceComponent) return;
 
+	// Automatically start mining when close enough to the resource node
 	AAResourceNode* Resource = ResourceComponent->GetCurrentResourceNode();
 	if (Resource && FVector::Dist(GetActorLocation(), Resource->GetActorLocation()) < 150.f)
 	{

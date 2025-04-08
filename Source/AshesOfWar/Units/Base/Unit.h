@@ -1,5 +1,3 @@
-// Core Unit class used for RTS characters with Ability System integration
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -8,10 +6,8 @@
 #include "AshesOfWar/Units/Interface/AOWInputInterface.h"
 #include "Unit.generated.h"
 
-
-// Input interface for unit selection and control
+// Forward declarations
 class IAOWInputInterface;
-// Forward declarations for performance (instead of full includes)
 class UAOWAbilitySystemComponent;
 class UAOWAttributeSet;
 class UGameplayAbility;
@@ -20,7 +16,8 @@ class AUnitAIController;
 
 /**
  * AUnit
- * Base RTS Unit class that integrates GAS (Gameplay Ability System), attributes, and AI.
+ * Base class for all RTS units.
+ * Integrates Gameplay Ability System (GAS), attributes, AI, and movement logic.
  */
 UCLASS()
 class ASHESOFWAR_API AUnit : public ACharacter, public IAbilitySystemInterface, public IAOWInputInterface
@@ -28,39 +25,39 @@ class ASHESOFWAR_API AUnit : public ACharacter, public IAbilitySystemInterface, 
 	GENERATED_BODY()
 
 public:
-	// Constructor – sets default values
+	// Constructor
 	AUnit();
 
-	// Called after BeginPlay for child classes to override logic
+	// Called once GAS and other components are initialized
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Initialization")
 	void OnBeginPlay();
 	virtual void OnBeginPlay_Implementation();
 
-	// GAS interface requirement
+	// GAS requirement
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	// Custom getter for this unit's attribute set
+	// Returns this unit's attribute set
 	virtual UAOWAttributeSet* GetAttributeSet() const;
 
-	// Get the unit's ai controller
+	// Retrieves the unit's AI Controller
 	TObjectPtr<AUnitAIController> GetAIController() const;
 
-	// Order unit to move to a given location (called via script/AI/blueprint)
+	// Issues a move command to the unit
 	UFUNCTION(BlueprintCallable)
 	void MoveToLocation(FVector TargetLocation);
 
-	// Stop the unit's current movement
+	// Stops any current movement
 	UFUNCTION(BlueprintCallable)
 	void StopMovement();
 
 protected:
-	// BeginPlay override to initialize GAS and custom attributes
+	// Called at spawn time
 	virtual void BeginPlay() override;
 
-	// Grants the default gameplay abilities to the unit
+	// Gives the unit its default gameplay abilities
 	void GiveDefaultAbilities();
 
-	// Initializes unit stats (health, speed, etc.) using a default effect
+	// Applies the base gameplay effect that sets initial stats
 	void InitDefaultAttributes();
 
 	// --- GAS Components ---
@@ -71,13 +68,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Attribute", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAOWAttributeSet> AttributeSet;
 
-	// --- GAS Definitions (Editor-configurable) ---
+	// --- GAS Definitions (editable in Blueprint) ---
 
-	// Abilities given to the unit on spawn
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
 
-	// Initial attribute modifier effect (e.g., sets default HP, Speed, Damage)
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	TSubclassOf<UGameplayEffect> DefaultAttributeEffect;
 };
