@@ -6,7 +6,6 @@
 #include "Runtime/AIModule/Classes/AIController.h"
 #include "UnitAIController.generated.h"
 
-// Forward declaration to avoid unnecessary includes in the header
 class UUnitStateTreeAIComponent;
 
 /**
@@ -22,19 +21,17 @@ public:
 	// Constructor: Initializes this AI Controller with a StateTree component
 	explicit AUnitAIController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
-	// AI logic component using Unreal's StateTree system
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI")
-	TObjectPtr<UUnitStateTreeAIComponent> UnitStateTreeAIComponent;
-
-	// Function to get the StateTree component
-	UFUNCTION(BlueprintCallable, Category = "AI")
-	UUnitStateTreeAIComponent* GetUnitStateTreeAIComponent() const
-	{
-		return UnitStateTreeAIComponent;
-	}
 protected:
 	// Called when the game begins or this controller is spawned
 	virtual void BeginPlay() override;
 
-	// You may later override Tick() or Possess() here for advanced logic
+public:
+	// Getter sécurisé du StateTree AI Component
+	UFUNCTION(BlueprintCallable, Category = "AI")
+	UUnitStateTreeAIComponent* GetUnitStateTreeAIComponent() const;
+
+private:
+	// Instance du composant AI StateTree (non modifiable dans l'éditeur)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UUnitStateTreeAIComponent> UnitStateTreeAIComponent;
 };

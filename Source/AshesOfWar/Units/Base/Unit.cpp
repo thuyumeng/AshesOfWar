@@ -4,8 +4,8 @@
 #include "AshesOfWar/Ability/Base/AOWAbilitySystemComponent.h"
 #include "AshesOfWar/Ability/Base/AOWAttributeSet.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
+#include "Navigation/PathFollowingComponent.h"
 #include "AshesOfWar/AI/StateTree/UnitStateTreeAIComponent.h"
-
 #include "GameFramework/CharacterMovementComponent.h"
 
 
@@ -83,16 +83,37 @@ TObjectPtr<AUnitAIController> AUnit::GetAIController() const
 // Called to move the unit to a specified world location
 void AUnit::MoveToLocation(FVector TargetLocation)
 {
-	if (AAIController* AIController = Cast<AAIController>(GetController()))
+	// Vérifie si le contrôleur est valide
+	AAIController* AIController = Cast<AAIController>(GetController());
+	if (!AIController)
 	{
-		// Apply current unit speed from AttributeSet
-		// Notice: must be walkable character skeletal mesh, not a static mesh!!!
-		GetCharacterMovement()->MaxWalkSpeed = NUMERIC_VALUE(AttributeSet, Speed);
-
-		// Order movement to location using AI navigation
-		AIController->MoveToLocation(TargetLocation);
+		UE_LOG(LogTemp, Error, TEXT("AUnit::MoveToLocation - Aucun contrôleur trouvé."));
+		return;
 	}
+
+	// Vérifie si le CharacterMovement est présent
+	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
+	if (!MoveComp)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AUnit::MoveToLocation - Aucun CharacterMovementComponent trouvé."));
+		return;
+	}
+
+	// Appliquer la vitesse de déplacement selon l'attribut "Speed"
+	const float Speed = NUMERIC_VALUE(AttributeSet, Speed);
+	MoveComp->MaxWalkSpeed = Speed;
+
+	// Ordre de déplacement
+	FAIMoveRequest MoveRequest;
+	MoveRequest.SetGoalLocation(TargetLocation);
+	MoveRequest.SetAcceptanceRadius(50.f); // peut être ajusté selon le type d’unité
+
+	FNavPathSharedPtr NavPath;
+	const EPathFollowingRequestResult::Type MoveResult = AIController->MoveTo(MoveRequest, &NavPath);
+
+	UE_LOG(LogTemp, Log, TEXT("AUnit::MoveToLocation - Déplacement vers %s. Résultat : %d"), *TargetLocation.ToString(), (int32)MoveResult);
 }
+
 
 // Halts movement of the unit using AIController
 void AUnit::StopMovement()
