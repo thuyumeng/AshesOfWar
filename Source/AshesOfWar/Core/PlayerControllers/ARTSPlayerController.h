@@ -5,6 +5,7 @@
 #include "ARTSPlayerController.generated.h"
 
 class AUnit;
+class UWResourceBarWidget;
 
 /**
  * ARTSPlayerController
@@ -16,25 +17,31 @@ class ASHESOFWAR_API ARTSPlayerController : public APlayerController
 	GENERATED_BODY()
 
 public:
-	// Constructor
 	ARTSPlayerController();
 
 protected:
-	// Sets up player input bindings
 	virtual void SetupInputComponent() override;
+	virtual void BeginPlay() override;
 
-	// Handles left-click input (selection)
 	void HandleLeftClick();
-
-	// Handles right-click input (orders)
 	void HandleRightClick();
 
+	// Met à jour l'affichage des ressources dans l'UI
+	void UpdateResourceUI();
+
 public:
-	// Temporarily supports single unit selection
 	void SetSelectedUnit(AUnit* NewUnit);
 
 private:
-	// Currently selected unit
 	UPROPERTY()
 	AUnit* SelectedUnit;
+
+	// --- UI Resource Bar --- //
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	TSubclassOf<class UWResourceBarWidget> ResourceBarClass;
+
+	UPROPERTY()
+	UWResourceBarWidget* ResourceBarInstance;
+
+	FTimerHandle ResourceUpdateTimerHandle;
 };
