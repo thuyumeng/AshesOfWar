@@ -51,6 +51,18 @@ void UBaseMinerToResourceTask::MoveToNearestResource()
 EStateTreeRunStatus UBaseMinerToResourceTask::EnterState(FStateTreeExecutionContext& Context,
                                                          const FStateTreeTransitionResult& Transition)
 {
+	// call onMoveCompleted when the move is completed
+	if (AIController)
+	{
+		AIController->ReceiveMoveCompleted.AddUniqueDynamic(
+			this, &UBaseMinerToResourceTask::OnMoveCompleted);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("AIController is not initialized: BaseMinerToResourceTask"));
+		return EStateTreeRunStatus::Failed;
+	}
+	
 	// find the nearest resource and move to it
 	MoveToNearestResource();
 	return Super::EnterState(Context, Transition);
