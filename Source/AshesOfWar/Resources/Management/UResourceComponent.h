@@ -33,6 +33,13 @@ public:
 	// Returns the player state of the owner pawn
 	APlayerState* GetPlayerState() const;
 
+	// Définit le node depuis lequel extraire
+	void SetCurrentResourceNode(class AAResourceNode* NewNode);
+	
+	AAResourceNode* GetCurrentResourceNode() const;
+	
+	bool IsCollecting() const;
+
 private:
 	// Whether this unit is currently collecting
 	bool bIsCollecting;

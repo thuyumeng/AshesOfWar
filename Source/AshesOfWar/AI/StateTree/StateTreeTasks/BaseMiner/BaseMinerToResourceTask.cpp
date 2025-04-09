@@ -2,7 +2,6 @@
 
 
 #include "BaseMinerToResourceTask.h"
-#include "AshesOfWar/Units/Ore/Ore.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
 #include "Kismet/GameplayStatics.h"
 #include "StateTreeExecutionContext.h"
