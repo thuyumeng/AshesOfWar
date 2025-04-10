@@ -31,6 +31,4 @@ private:
 	// the miner that is going to the resource
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Context", meta=(AllowPrivateAccess=true))
 	TObjectPtr<AUnitAIController> AIController;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Context", meta=(AllowPrivateAccess=true))
 };
