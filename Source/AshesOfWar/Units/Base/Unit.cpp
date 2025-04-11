@@ -4,8 +4,10 @@
 #include "AshesOfWar/Ability/Base/AOWAbilitySystemComponent.h"
 #include "AshesOfWar/Ability/Base/AOWAttributeSet.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
+#include "Components/CapsuleComponent.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/DecalComponent.h"
 
 // Constructor
 AUnit::AUnit()
@@ -14,6 +16,25 @@ AUnit::AUnit()
 
 	AbilitySystemComponent = CreateDefaultSubobject<UAOWAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	AttributeSet = CreateDefaultSubobject<UAOWAttributeSet>(TEXT("AttributeSet"));
+
+	// create the decal component
+	DecalComponent = CreateDefaultSubobject<UDecalComponent>(TEXT("DecalComponent"));
+	// attach the decal to the root component
+	DecalComponent->SetupAttachment(GetRootComponent());
+	// get the collision radius from the capsule component
+	const float Radius = GetCapsuleComponent()->GetScaledCapsuleRadius();
+	// set the decal size
+	const float Scale = 5.0f; // Adjust the scale of the decal it is an number of experience
+	DecalComponent->DecalSize = FVector(Radius * Scale, Radius * Scale, Radius * Scale);
+	// set the rotation of the decal
+	DecalComponent->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
+	// set the decal material
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> DecalMaterial(TEXT("/Game/Material/Unit/M_SelectionDecal.M_SelectionDecal"));
+	if (DecalMaterial.Succeeded())
+	{
+		DecalComponent->SetDecalMaterial(DecalMaterial.Object);
+	}
+	DecalComponent->SetVisibility(false);
 }
 
 // Custom hook (BlueprintNativeEvent)
@@ -49,7 +70,7 @@ void AUnit::BeginPlay()
 			return;
 		}
 	}
-
+	
 	OnBeginPlay();
 }
 
@@ -114,6 +135,11 @@ void AUnit::StopMovement()
 	{
 		AIController->StopMovement();
 	}
+}
+
+void AUnit::SetSelectedUnit(bool bSelected)
+{
+	DecalComponent->SetVisibility(bSelected);
 }
 
 // Grants default gameplay abilities to the unit

@@ -51,11 +51,16 @@ void ARTSPlayerController::SetupInputComponent()
 
 void ARTSPlayerController::SetSelectedUnit(AUnit* NewUnit)
 {
+	if (SelectedUnit)
+	{
+		SelectedUnit->SetSelectedUnit(false); // Deselect the previous unit
+	}
 	SelectedUnit = NewUnit;
 
 	// Log for debugging
 	if (SelectedUnit)
 	{
+		SelectedUnit->SetSelectedUnit(true);
 		UE_LOG(LogTemp, Log, TEXT("Selected unit: %s"), *SelectedUnit->GetName());
 	}
 	else
