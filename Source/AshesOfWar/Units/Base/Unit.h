@@ -50,6 +50,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StopMovement();
 
+	UFUNCTION(BlueprintCallable)
+	void SetSelectedUnit(bool bSelected);
+
 protected:
 	// Called at spawn time
 	virtual void BeginPlay() override;
@@ -75,4 +78,7 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	TSubclassOf<UGameplayEffect> DefaultAttributeEffect;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
+	UDecalComponent* DecalComponent;
 };
