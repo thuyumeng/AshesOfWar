@@ -2,8 +2,8 @@
 
 
 #include "MainHUD.h"
-
-#include "Chaos/ChaosPerfTest.h"
+#include "AshesOfWar/Units/Base/Unit.h"
+#include "AshesOfWar/Core/PlayerControllers/ARTSPlayerController.h"
 
 void AMainHUD::DrawHUD()
 {
@@ -18,5 +18,28 @@ void AMainHUD::DrawHUD()
 			SelectionRectStart.Y,
 			SelectionRectSize.X,
 			SelectionRectSize.Y);
+
+		// This function can only be called when dragging the selection box
+		GetActorsInSelectionRectangle<AUnit>(SelectionRectStart, SelectionRectStart + SelectionRectSize, SelectedUnits, false);
+	}
+}
+
+void AMainHUD::ShowSelectionRect(const FVector2D& Start, const FVector2D& Size, const FLinearColor& Color)
+{
+	bDrawSelectionRect = true;
+	SelectionRectStart = Start;
+	SelectionRectSize = Size;
+	SelectionRectColor = Color;
+}
+
+void AMainHUD::HideSelectionRect()
+{
+	if (!bDrawSelectionRect)
+		return;
+	bDrawSelectionRect = false;
+	ARTSPlayerController* PlayerController = Cast<ARTSPlayerController>(GetOwningPlayerController());
+	if (PlayerController)
+	{
+		PlayerController->SetMultipleSelectedUnits(SelectedUnits);
 	}
 }

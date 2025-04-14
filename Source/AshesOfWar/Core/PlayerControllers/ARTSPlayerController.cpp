@@ -74,6 +74,23 @@ void ARTSPlayerController::SetSelectedUnit(AUnit* NewUnit)
 	}
 }
 
+void ARTSPlayerController::SetMultipleSelectedUnits(TArray<AUnit*>& NewUnits)
+{
+	for (AUnit* Unit : SelectedUnits)
+	{
+		if (Unit)
+		{
+			Unit->SetSelectedUnit(false); // Deselect previously selected units
+		}
+	}
+	
+	for (AUnit* Unit : NewUnits)
+	{
+		Unit->SetSelectedUnit(true);
+		SelectedUnits.Add(Unit);
+	}
+}
+
 void ARTSPlayerController::HandleLeftClick()
 {
 	FHitResult Hit;

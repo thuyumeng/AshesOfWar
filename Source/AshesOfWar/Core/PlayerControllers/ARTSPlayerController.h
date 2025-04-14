@@ -45,11 +45,16 @@ protected:
 public:
 	// Set the currently selected unit
 	void SetSelectedUnit(AUnit* NewUnit);
+	void SetMultipleSelectedUnits(TArray<AUnit*>& NewUnits);
 
 private:
 	// The currently selected unit (if any)
 	UPROPERTY()
 	TObjectPtr<AUnit> SelectedUnit;
+
+	// The currently multiple selected units (if any)
+	UPROPERTY()
+	TArray<TObjectPtr<AUnit>> SelectedUnits;
 
 	// The multiple selection box property
 	UPROPERTY()
