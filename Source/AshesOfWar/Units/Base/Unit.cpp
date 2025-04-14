@@ -24,7 +24,7 @@ AUnit::AUnit()
 	// get the collision radius from the capsule component
 	const float Radius = GetCapsuleComponent()->GetScaledCapsuleRadius();
 	// set the decal size
-	const float Scale = 5.0f; // Adjust the scale of the decal it is an number of experience
+	constexpr float Scale = 5.0f; // Adjust the scale of the decal it is an number of experience
 	DecalComponent->DecalSize = FVector(Radius * Scale, Radius * Scale, Radius * Scale);
 	// set the rotation of the decal
 	DecalComponent->SetRelativeRotation(FRotator(-90.f, 0.f, 0.f));
