@@ -6,6 +6,7 @@
 
 class AUnit;
 class UWResourceBarWidget;
+class AMainHUD;
 
 /**
  * ARTSPlayerController
@@ -26,6 +27,7 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	void HandleLeftClickRelease();
 	// Binds mouse click inputs
 	virtual void SetupInputComponent() override;
 
@@ -38,14 +40,25 @@ protected:
 	// Updates the resource UI (Aetherium, Vitae, Umbra)
 	void UpdateResourceUI();
 
+	virtual void Tick(float DeltaSeconds) override;
+
 public:
 	// Set the currently selected unit
 	void SetSelectedUnit(AUnit* NewUnit);
+	void SetMultipleSelectedUnits(TArray<AUnit*>& NewUnits);
 
 private:
 	// The currently selected unit (if any)
 	UPROPERTY()
-	AUnit* SelectedUnit;
+	TObjectPtr<AUnit> SelectedUnit;
+
+	// The currently multiple selected units (if any)
+	UPROPERTY()
+	TArray<TObjectPtr<AUnit>> SelectedUnits;
+
+	// The multiple selection box property
+	UPROPERTY()
+	bool bIsMousePressed{false};
 
 	// --- UI: Resource Bar --- //
 
@@ -53,6 +66,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UWResourceBarWidget> ResourceBarClass;
 
+	// Widget that used for display the rect area of marquee selection
+	UPROPERTY(BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<AMainHUD> MainHUD;
+	FVector2D SelectionStartPosition;
+	
+	
 	// Widget instance shown in-game
 	UPROPERTY()
 	UWResourceBarWidget* ResourceBarInstance;

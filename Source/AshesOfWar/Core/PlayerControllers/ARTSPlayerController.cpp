@@ -3,6 +3,7 @@
 #include "AshesOfWar/Units/Base/Miner/Miner.h"
 #include "AshesOfWar/Resources/Nodes/AResourceNode.h"
 #include "AshesOfWar/UI/Widgets/WResourceBarWidget.h"
+#include "AshesOfWar/UI/HUD/MainHUD.h"
 #include "AshesOfWar/Core/GameStates/ARTSGameState.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
@@ -38,6 +39,9 @@ void ARTSPlayerController::BeginPlay()
 			GetWorldTimerManager().SetTimer(ResourceUpdateTimerHandle, this, &ARTSPlayerController::UpdateResourceUI, 1.0f, true);
 		}
 	}
+
+	// Get the Hud for the marquee selection drawing
+	MainHUD = Cast<AMainHUD>(GetHUD());
 }
 
 void ARTSPlayerController::SetupInputComponent()
@@ -46,6 +50,7 @@ void ARTSPlayerController::SetupInputComponent()
 
 	// Bind left and right click actions
 	InputComponent->BindAction("LeftClick", IE_Pressed, this, &ARTSPlayerController::HandleLeftClick);
+	InputComponent->BindAction("LeftClick", IE_Released, this, &ARTSPlayerController::HandleLeftClickRelease);
 	InputComponent->BindAction("RightClick", IE_Pressed, this, &ARTSPlayerController::HandleRightClick);
 }
 
@@ -69,6 +74,23 @@ void ARTSPlayerController::SetSelectedUnit(AUnit* NewUnit)
 	}
 }
 
+void ARTSPlayerController::SetMultipleSelectedUnits(TArray<AUnit*>& NewUnits)
+{
+	for (AUnit* Unit : SelectedUnits)
+	{
+		if (Unit)
+		{
+			Unit->SetSelectedUnit(false); // Deselect previously selected units
+		}
+	}
+	
+	for (AUnit* Unit : NewUnits)
+	{
+		Unit->SetSelectedUnit(true);
+		SelectedUnits.Add(Unit);
+	}
+}
+
 void ARTSPlayerController::HandleLeftClick()
 {
 	FHitResult Hit;
@@ -84,7 +106,29 @@ void ARTSPlayerController::HandleLeftClick()
 	{
 		SetSelectedUnit(Unit);
 	}
+	else
+	{
+		// If clicked on the ground, deselect the unit
+		SetSelectedUnit(nullptr);
+		// Set beginning multiple selection to True
+		bIsMousePressed = true;
+		// Enable the tick to update the drawing of selection box
+		PrimaryActorTick.bCanEverTick = true;
+		// Record the start selection point
+		float mouseX, mouseY;
+		GetMousePosition(mouseX, mouseY);
+		SelectionStartPosition = FVector2D(mouseX, mouseY);
+	}
 }
+
+void ARTSPlayerController::HandleLeftClickRelease()
+{
+	// TODO Release the multiple selection box
+	bIsMousePressed = false;
+	PrimaryActorTick.bCanEverTick = false;
+	MainHUD->HideSelectionRect();
+}
+
 
 void ARTSPlayerController::HandleRightClick()
 {
@@ -131,4 +175,20 @@ void ARTSPlayerController::UpdateResourceUI()
 
 	// Update the UI with latest values
 	ResourceBarInstance->UpdateResources(Aetherium, Vitae, Umbra);
+}
+
+void ARTSPlayerController::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	// update the drawing of selection box if mouse is pressed
+	if (bIsMousePressed)
+	{
+		float mouseX, mouseY;
+		GetMousePosition(mouseX, mouseY);
+		FVector2D SelectionSize = FVector2D(mouseX - SelectionStartPosition.X, mouseY - SelectionStartPosition.Y);
+		MainHUD->ShowSelectionRect(
+			SelectionStartPosition,
+			SelectionSize);
+	}
 }
