@@ -63,6 +63,7 @@ void ARTSPlayerController::SetSelectedUnits(TArray<AUnit*>& NewUnits)
 			Unit->SetSelectedUnit(false); // Deselect previously selected units
 		}
 	}
+	SelectedUnits.Empty();
 	
 	for (AUnit* Unit : NewUnits)
 	{
@@ -103,7 +104,6 @@ void ARTSPlayerController::HandleLeftClick()
 
 void ARTSPlayerController::HandleLeftClickRelease()
 {
-	// TODO Release the multiple selection box
 	bIsMousePressed = false;
 	PrimaryActorTick.bCanEverTick = false;
 	MainHUD->HideSelectionRect();
