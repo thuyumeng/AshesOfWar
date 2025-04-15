@@ -54,27 +54,7 @@ void ARTSPlayerController::SetupInputComponent()
 	InputComponent->BindAction("RightClick", IE_Pressed, this, &ARTSPlayerController::HandleRightClick);
 }
 
-void ARTSPlayerController::SetSelectedUnit(AUnit* NewUnit)
-{
-	if (SelectedUnit)
-	{
-		SelectedUnit->SetSelectedUnit(false); // Deselect the previous unit
-	}
-	SelectedUnit = NewUnit;
-
-	// Log for debugging
-	if (SelectedUnit)
-	{
-		SelectedUnit->SetSelectedUnit(true);
-		UE_LOG(LogTemp, Log, TEXT("Selected unit: %s"), *SelectedUnit->GetName());
-	}
-	else
-	{
-		UE_LOG(LogTemp, Log, TEXT("No unit selected."));
-	}
-}
-
-void ARTSPlayerController::SetMultipleSelectedUnits(TArray<AUnit*>& NewUnits)
+void ARTSPlayerController::SetSelectedUnits(TArray<AUnit*>& NewUnits)
 {
 	for (AUnit* Unit : SelectedUnits)
 	{
@@ -102,14 +82,13 @@ void ARTSPlayerController::HandleLeftClick()
 	AActor* ClickedActor = Hit.GetActor();
 
 	// If a unit was clicked, select it
+	TArray<AUnit*> CurSelectedUnits;
 	if (AUnit* Unit = Cast<AUnit>(ClickedActor))
 	{
-		SetSelectedUnit(Unit);
+		CurSelectedUnits.Add(Unit);
 	}
 	else
 	{
-		// If clicked on the ground, deselect the unit
-		SetSelectedUnit(nullptr);
 		// Set beginning multiple selection to True
 		bIsMousePressed = true;
 		// Enable the tick to update the drawing of selection box
@@ -119,6 +98,7 @@ void ARTSPlayerController::HandleLeftClick()
 		GetMousePosition(mouseX, mouseY);
 		SelectionStartPosition = FVector2D(mouseX, mouseY);
 	}
+	SetSelectedUnits(CurSelectedUnits);
 }
 
 void ARTSPlayerController::HandleLeftClickRelease()
@@ -132,7 +112,7 @@ void ARTSPlayerController::HandleLeftClickRelease()
 
 void ARTSPlayerController::HandleRightClick()
 {
-	if (!SelectedUnit)
+	if (SelectedUnits.Num() <= 0)
 		return;
 
 	FHitResult Hit;
@@ -145,18 +125,21 @@ void ARTSPlayerController::HandleRightClick()
 	AActor* HitActor = Hit.GetActor();
 
 	// If right-clicked on a resource node and selected unit is a miner
-	if (AAResourceNode* Resource = Cast<AAResourceNode>(HitActor))
+	for (AUnit* SelectedUnit : SelectedUnits)
 	{
-		if (AMiner* Miner = Cast<AMiner>(SelectedUnit))
+		if (AAResourceNode* Resource = Cast<AAResourceNode>(HitActor))
 		{
-			Miner->SetCurrentResourceNode(Resource);
-			Miner->MoveToLocation(TargetLocation);
+			if (AMiner* Miner = Cast<AMiner>(SelectedUnit))
+			{
+				Miner->SetCurrentResourceNode(Resource);
+				Miner->MoveToLocation(TargetLocation);
+			}
 		}
-	}
-	else
-	{
-		// Otherwise, move the selected unit to the target location
-		SelectedUnit->MoveToLocation(TargetLocation);
+		else
+		{
+			// Otherwise, move the selected unit to the target location
+			SelectedUnit->MoveToLocation(TargetLocation);
+		}
 	}
 }
 

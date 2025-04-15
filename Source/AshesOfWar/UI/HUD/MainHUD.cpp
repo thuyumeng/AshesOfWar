@@ -37,9 +37,10 @@ void AMainHUD::HideSelectionRect()
 	if (!bDrawSelectionRect)
 		return;
 	bDrawSelectionRect = false;
-	ARTSPlayerController* PlayerController = Cast<ARTSPlayerController>(GetOwningPlayerController());
-	if (PlayerController)
+	if (ARTSPlayerController* PlayerController = Cast<ARTSPlayerController>(GetOwningPlayerController()))
 	{
-		PlayerController->SetMultipleSelectedUnits(SelectedUnits);
+		PlayerController->SetSelectedUnits(SelectedUnits);
 	}
+	// clear the SelectedUnits
+	SelectedUnits.Empty();
 }
