@@ -9,6 +9,25 @@ class ASHESOFWAR_API UBuildingAuraComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	//* Ajouter : Portée de l’aura, type (buff/débuff), effet appliqué *//
-	//* Ajouter : Vérification régulière des unités dans la zone *//
+	UBuildingAuraComponent();
+
+protected:
+	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+	// Vérifie les unités à proximité et applique l’effet
+	void ApplyAuraToNearbyUnits();
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Aura")
+	float AuraRadius;
+
+	UPROPERTY(EditAnywhere, Category = "Aura")
+	bool bIsBuff; // true = buff, false = debuff
+
+	UPROPERTY(EditAnywhere, Category = "Aura")
+	TSubclassOf<class UGameplayEffect> AuraEffect;
+
+	UPROPERTY()
+	TArray<AActor*> AffectedUnits;
 };

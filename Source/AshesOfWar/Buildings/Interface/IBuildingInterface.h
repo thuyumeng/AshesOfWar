@@ -14,5 +14,7 @@ class ASHESOFWAR_API IBuildingInterface
 	GENERATED_BODY()
 
 public:
-	//* Ajouter : Méthodes comme OnConstructed(), OnDamaged(), OnRepaired() *//
+	virtual void OnConstructed() = 0;
+	virtual void OnDamaged(float DamageAmount) = 0;
+	virtual void OnRepaired(float RepairAmount) = 0;
 };

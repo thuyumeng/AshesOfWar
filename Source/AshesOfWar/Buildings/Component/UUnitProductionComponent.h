@@ -1,7 +1,10 @@
 #pragma once
+
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "UUnitProductionComponent.generated.h"
+
+class AUnit;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class ASHESOFWAR_API UUnitProductionComponent : public UActorComponent
@@ -9,7 +12,31 @@ class ASHESOFWAR_API UUnitProductionComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	//* Ajouter : File d’attente de production, méthodes StartProduction/Cancel *//
-	//* Ajouter : Vérification des ressources nécessaires *//
-	//* Ajouter : Timer pour produire l’unité à la fin du délai *//
+	UUnitProductionComponent();
+
+	UFUNCTION(BlueprintCallable, Category = "Production")
+	void StartProduction(TSubclassOf<AUnit> UnitClass);
+
+	UFUNCTION(BlueprintCallable, Category = "Production")
+	void CancelProduction();
+
+	UFUNCTION(BlueprintPure, Category = "Production")
+	bool IsProducing() const;
+
+protected:
+	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+private:
+	UPROPERTY()
+	TSubclassOf<AUnit> CurrentUnitClass;
+
+	UPROPERTY()
+	float TimeRemaining;
+
+	UPROPERTY()
+	float TotalProductionTime;
+
+	UPROPERTY()
+	bool bIsProducing;
 };
