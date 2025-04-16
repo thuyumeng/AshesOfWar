@@ -9,5 +9,5 @@ enum class EBuildingType : uint8
 	Production UMETA(DisplayName = "Production"),
 	Defense UMETA(DisplayName = "Defense"),
 	Research UMETA(DisplayName = "Research")
-	//* Ajouter d’autres types si nécessaire *//
+
 };

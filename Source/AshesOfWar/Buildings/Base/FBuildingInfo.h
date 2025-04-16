@@ -6,9 +6,29 @@
 USTRUCT(BlueprintType)
 struct FBuildingInfo
 {
-	GENERATED_BODY()
+	GENERATED_BODY();
 
-public:
-	//* Ajouter : Champs pour coût (TMap<EResourceType, int32>), HP, temps construction, type *//
-	//* Utilisé pour définir chaque bâtiment sans dupliquer dans chaque classe *//
+	//* Nom interne / ID *//
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FName BuildingID;
+
+	//* Type de bâtiment (Production, QG, etc.) *//
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	EBuildingType BuildingType;
+
+	//* Coût par ressource (Aetherium, Vitae, Umbra) *//
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	TMap<EResourceType, int32> ResourceCost;
+
+	//* Temps de construction *//
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float ConstructionTime;
+
+	//* Tier minimum requis *//
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 RequiredTechTier;
+
+	//* PV Max du bâtiment *//
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	int32 MaxHealth;
 };
