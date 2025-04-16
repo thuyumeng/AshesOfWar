@@ -43,16 +43,11 @@ protected:
 	virtual void Tick(float DeltaSeconds) override;
 
 public:
-	// Set the currently selected unit
-	void SetSelectedUnit(AUnit* NewUnit);
-	void SetMultipleSelectedUnits(TArray<AUnit*>& NewUnits);
+	// Set the currently selected units
+	void SetSelectedUnits(TArray<AUnit*>& NewUnits);
 
 private:
-	// The currently selected unit (if any)
-	UPROPERTY()
-	TObjectPtr<AUnit> SelectedUnit;
-
-	// The currently multiple selected units (if any)
+	// The currently selected units (if any)
 	UPROPERTY()
 	TArray<TObjectPtr<AUnit>> SelectedUnits;
 
