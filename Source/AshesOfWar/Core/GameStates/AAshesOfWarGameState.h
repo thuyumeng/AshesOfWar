@@ -2,6 +2,7 @@
 #include "CoreMinimal.h"
 #include "AshesOfWar/Buildings/Base/EBuildingType.h"
 #include "GameFramework/GameStateBase.h"
+#include "AshesOfWar/Buildings/Base/FPlayerBuildingArray.h"
 #include "AAshesOfWarGameState.generated.h"
 
 class ABaseBuilding;
@@ -13,8 +14,9 @@ class ASHESOFWAR_API AAshesOfWarGameState : public AGameStateBase
 
 public:
 	// Liste des bâtiments possédés par chaque joueur
-	UPROPERTY(BlueprintReadOnly, Category = "Building")
+	UPROPERTY()
 	TMap<TObjectPtr<APlayerState>, FPlayerBuildingArray> PlayerBuildings;
+
 
 	// Ajoute un bâtiment au joueur
 	UFUNCTION(BlueprintCallable, Category = "Building")
