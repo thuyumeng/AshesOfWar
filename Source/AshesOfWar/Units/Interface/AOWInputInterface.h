@@ -1,27 +1,37 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "AOWInputInterface.generated.h"
 
-// This class does not need to be modified.
+// Forward declaration
+class AUnit;
+
+/**
+ * UAOWInputInterface
+ * 
+ * Unreal UInterface class required for defining the IAOWInputInterface.
+ * No implementation required unless extending functionality.
+ */
 UINTERFACE()
-class UAOWInputInterface : public UInterface
+class ASHESOFWAR_API UAOWInputInterface : public UInterface
 {
 	GENERATED_BODY()
 };
 
 /**
- * this class is used to define the input interface for the unit
+ * IAOWInputInterface
+ * 
+ * Interface used to define standardized input-related functions for RTS units (e.g., selection, move orders).
+ * 
+ * Implement this interface in any unit that needs to react to input commands.
  */
-
-class AUnit;
 class ASHESOFWAR_API IAOWInputInterface
 {
 	GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
+	// Interface methods to be implemented by inheriting classes
+	// Example:
+	// virtual void MoveToLocation(const FVector& TargetLocation) = 0;
 };

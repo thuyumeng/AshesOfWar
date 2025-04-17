@@ -4,15 +4,17 @@
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/Actor.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "Engine/EngineTypes.h"
 #include "CollisionShape.h"
 #include "CollisionQueryParams.h"
-#include "PhysicsEngine/BodyInstance.h" // Important pour FOverlapResult
-#include "Kismet/KismetSystemLibrary.h" // 🔁 pour SphereOverlapActors
+#include "PhysicsEngine/BodyInstance.h"
 
 UBuildingAuraComponent::UBuildingAuraComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+
+	// Default values
 	AuraRadius = 500.f;
 	bIsBuff = true;
 }
@@ -31,20 +33,28 @@ void UBuildingAuraComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 
 void UBuildingAuraComponent::ApplyAuraToNearbyUnits()
 {
-	if (!AuraEffect) return;
+	// Validate aura effect
+	if (!AuraEffect)
+	{
+		return;
+	}
 
 	UWorld* World = GetWorld();
-	if (!World) return;
+	if (!World)
+	{
+		return;
+	}
 
 	TArray<AActor*> OverlappingActors;
 
+	// Perform a sphere overlap to find nearby actors (filtering for Pawns)
 	UKismetSystemLibrary::SphereOverlapActors(
 		this,
 		GetOwner()->GetActorLocation(),
 		AuraRadius,
 		TArray<TEnumAsByte<EObjectTypeQuery>>{ UEngineTypes::ConvertToObjectType(ECC_Pawn) },
 		AActor::StaticClass(),
-		TArray<AActor*>{ GetOwner() },
+		TArray<AActor*>{ GetOwner() }, // Ignore self
 		OverlappingActors
 	);
 
@@ -54,18 +64,21 @@ void UBuildingAuraComponent::ApplyAuraToNearbyUnits()
 	{
 		if (!Actor) continue;
 
+		// Try to find the Ability System Component
 		if (UAbilitySystemComponent* ASC = Actor->FindComponentByClass<UAbilitySystemComponent>())
 		{
+			// Check if the unit is alive (Health > 0)
 			const UAOWAttributeSet* AttrSet = ASC->GetSet<UAOWAttributeSet>();
 			if (AttrSet && AttrSet->GetHealth() > 0.f)
 			{
 				NewAffected.Add(Actor);
 
+				// Only apply the aura if it was not already affecting this unit
 				if (!AffectedUnits.Contains(Actor))
 				{
 					ASC->ApplyGameplayEffectToSelf(
 						AuraEffect->GetDefaultObject<UGameplayEffect>(),
-						1.f,
+						1.0f,
 						ASC->MakeEffectContext()
 					);
 				}
@@ -73,5 +86,6 @@ void UBuildingAuraComponent::ApplyAuraToNearbyUnits()
 		}
 	}
 
+	// Update the list of affected units
 	AffectedUnits = NewAffected;
 }

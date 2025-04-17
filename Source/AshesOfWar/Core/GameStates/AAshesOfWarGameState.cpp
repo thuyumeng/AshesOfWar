@@ -1,48 +1,56 @@
 #include "AAshesOfWarGameState.h"
 #include "AshesOfWar/Buildings/Base/ABaseBuilding.h"
-#include "AshesOfWar/Buildings/Base/FPlayerBuildingArray.h"
 #include "GameFramework/PlayerState.h"
 
-// Ajoute un bâtiment à la liste du joueur
 void AAshesOfWarGameState::RegisterBuilding(APlayerState* Player, ABaseBuilding* Building)
 {
-	if (!Player || !Building) return;
+	if (!Player || !Building)
+	{
+		return;
+	}
 
+	// Ensure the player entry exists
 	if (!PlayerBuildings.Contains(Player))
 	{
 		PlayerBuildings.Add(Player, FPlayerBuildingArray());
 	}
 
+	// Add the building to the player's list
 	PlayerBuildings[Player].Buildings.Add(Building);
 }
 
-// Récupère tous les bâtiments d’un type donné (ex : Production)
 TArray<ABaseBuilding*> AAshesOfWarGameState::GetBuildingsOfType(APlayerState* Player, EBuildingType Type) const
 {
-	TArray<ABaseBuilding*> Matching;
+	TArray<ABaseBuilding*> MatchingBuildings;
 
-	if (!Player || !PlayerBuildings.Contains(Player)) return Matching;
+	if (!Player || !PlayerBuildings.Contains(Player))
+	{
+		return MatchingBuildings;
+	}
 
 	for (ABaseBuilding* Building : PlayerBuildings[Player].Buildings)
 	{
 		if (Building && Building->BuildingData.BuildingType == Type)
 		{
-			Matching.Add(Building);
+			MatchingBuildings.Add(Building);
 		}
 	}
 
-	return Matching;
+	return MatchingBuildings;
 }
 
-// Récupère le niveau de tier du joueur (default = 1 si non initialisé)
 int32 AAshesOfWarGameState::GetTechTierForPlayer(APlayerState* Player) const
 {
-	if (!Player) return 1;
+	if (!Player)
+	{
+		return 1;
+	}
 
 	if (const int32* Tier = PlayerTechTier.Find(Player))
 	{
 		return *Tier;
 	}
 
+	// Default starting tech tier if not registered yet
 	return 1;
 }

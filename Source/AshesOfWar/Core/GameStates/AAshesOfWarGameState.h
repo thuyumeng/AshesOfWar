@@ -1,37 +1,50 @@
 #pragma once
+
 #include "CoreMinimal.h"
-#include "AshesOfWar/Buildings/Base/EBuildingType.h"
 #include "GameFramework/GameStateBase.h"
+#include "AshesOfWar/Buildings/Base/EBuildingType.h"
 #include "AshesOfWar/Buildings/Base/FPlayerBuildingArray.h"
 #include "AAshesOfWarGameState.generated.h"
 
+// Forward declaration
 class ABaseBuilding;
 
+/**
+ * AAshesOfWarGameState
+ *
+ * Custom GameState for Ashes of War, responsible for tracking player buildings and technological tiers.
+ */
 UCLASS()
 class ASHESOFWAR_API AAshesOfWarGameState : public AGameStateBase
 {
 	GENERATED_BODY()
 
 public:
-	// Liste des bâtiments possédés par chaque joueur
-	UPROPERTY()
-	TMap<TObjectPtr<APlayerState>, FPlayerBuildingArray> PlayerBuildings;
-
-
-	// Ajoute un bâtiment au joueur
+	/**
+	 * Registers a new building to the owning player's building list.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Building")
 	void RegisterBuilding(APlayerState* Player, ABaseBuilding* Building);
 
-	// Récupère tous les bâtiments d’un type donné pour un joueur
+	/**
+	 * Retrieves all buildings of a specified type belonging to a player.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Building")
 	TArray<ABaseBuilding*> GetBuildingsOfType(APlayerState* Player, EBuildingType Type) const;
 
-	// Définit et retourne le Tier technologique d’un joueur
+	/**
+	 * Retrieves the current technological tier of the player (default = 1 if uninitialized).
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Building")
 	int32 GetTechTierForPlayer(APlayerState* Player) const;
 
-private:
-	// Niveau technologique par joueur
+protected:
+	/** List of buildings owned by each player. */
 	UPROPERTY()
-	TMap<APlayerState*, int32> PlayerTechTier;
+	TMap<TObjectPtr<APlayerState>, FPlayerBuildingArray> PlayerBuildings;
+
+private:
+	/** Tech tier per player. */
+	UPROPERTY()
+	TMap<TObjectPtr<APlayerState>, int32> PlayerTechTier;
 };

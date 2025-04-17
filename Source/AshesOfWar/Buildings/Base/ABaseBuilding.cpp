@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "ABaseBuilding.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/BoxComponent.h"
@@ -7,46 +5,46 @@
 
 ABaseBuilding::ABaseBuilding()
 {
-	// Activer Tick uniquement si nécessaire
+	// Disable ticking for better performance unless needed
 	PrimaryActorTick.bCanEverTick = false;
 
-	// Composant racine par défaut
+	// Create and assign root component
 	SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("SceneRoot"));
 	RootComponent = SceneRoot;
 
-	// Mesh visuel du bâtiment
+	// Create and attach building mesh to root
 	BuildingMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingMesh"));
 	BuildingMesh->SetupAttachment(SceneRoot);
 
-	// Collision
+	// Create and attach collision box to root
 	CollisionBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
 	CollisionBox->SetupAttachment(SceneRoot);
 
-	// Initialisation de la progression de construction
+	// Initialize construction progress
 	ConstructionProgress = 0.0f;
 
-	// OwningPlayer sera assigné à l’instance par le système de construction
+	// Initially no owner assigned
 	OwningPlayer = nullptr;
 }
 
-void ABaseBuilding::SetOwningPlayer(APlayerState* player)
+void ABaseBuilding::SetOwningPlayer(APlayerState* Player)
 {
-	OwningPlayer = player;
+	OwningPlayer = Player;
 }
 
-// ✅ Implémentation de l'interface
+// --- IBuildingInterface Implementation ---
 
 void ABaseBuilding::OnConstructed()
 {
-	UE_LOG(LogTemp, Log, TEXT("Bâtiment %s est maintenant construit."), *GetName());
+	UE_LOG(LogTemp, Log, TEXT("Building %s has been fully constructed."), *GetName());
 }
 
 void ABaseBuilding::OnDamaged(float DamageAmount)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Bâtiment %s a subi %.1f dégâts."), *GetName(), DamageAmount);
+	UE_LOG(LogTemp, Warning, TEXT("Building %s has taken %.1f damage."), *GetName(), DamageAmount);
 }
 
 void ABaseBuilding::OnRepaired(float RepairAmount)
 {
-	UE_LOG(LogTemp, Log, TEXT("Bâtiment %s a été réparé de %.1f points."), *GetName(), RepairAmount);
+	UE_LOG(LogTemp, Log, TEXT("Building %s has been repaired by %.1f points."), *GetName(), RepairAmount);
 }

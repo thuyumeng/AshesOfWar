@@ -6,6 +6,8 @@
 UUnitProductionComponent::UUnitProductionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+
+	// Initialize defaults
 	bIsProducing = false;
 	TimeRemaining = 0.0f;
 	TotalProductionTime = 0.0f;
@@ -20,7 +22,10 @@ void UUnitProductionComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!bIsProducing) return;
+	if (!bIsProducing)
+	{
+		return;
+	}
 
 	TimeRemaining -= DeltaTime;
 
@@ -29,8 +34,8 @@ void UUnitProductionComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 		UWorld* World = GetWorld();
 		if (World)
 		{
-			// Calcule une position de spawn devant le bâtiment (à ajuster selon tes préférences)
-			const FVector SpawnLocation = GetOwner()->GetActorLocation() + GetOwner()->GetActorForwardVector() * 300.f;
+			// Calculate spawn location slightly in front of the building
+			const FVector SpawnLocation = GetOwner()->GetActorLocation() + GetOwner()->GetActorForwardVector() * 300.0f;
 			const FRotator SpawnRotation = FRotator::ZeroRotator;
 
 			FActorSpawnParameters SpawnParams;
@@ -41,15 +46,15 @@ void UUnitProductionComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 			if (NewUnit)
 			{
-				UE_LOG(LogTemp, Log, TEXT("[Production] Unité produite : %s"), *NewUnit->GetName());
+				UE_LOG(LogTemp, Log, TEXT("[Production] Unit produced: %s"), *NewUnit->GetName());
 			}
 			else
 			{
-				UE_LOG(LogTemp, Warning, TEXT("[Production] Échec lors du spawn de l’unité."));
+				UE_LOG(LogTemp, Warning, TEXT("[Production] Failed to spawn unit."));
 			}
 		}
 
-		// Réinitialisation
+		// Reset production state
 		bIsProducing = false;
 		TimeRemaining = 0.0f;
 		TotalProductionTime = 0.0f;
@@ -59,25 +64,27 @@ void UUnitProductionComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 void UUnitProductionComponent::StartProduction(TSubclassOf<AUnit> UnitClass)
 {
-	if (!UnitClass || bIsProducing) return;
+	if (!UnitClass || bIsProducing)
+	{
+		return;
+	}
 
 	CurrentUnitClass = UnitClass;
 
-	// Tu peux plus tard lire un GameplayTag ou Metadata ici pour personnaliser le temps
-	TotalProductionTime = 5.0f; // temporaire : fixe pour maintenant
+	// TODO: Later, dynamically adjust production time based on unit metadata
+	TotalProductionTime = 5.0f; // Temporary: hardcoded for now
 	TimeRemaining = TotalProductionTime;
 
 	bIsProducing = true;
 
-	UE_LOG(LogTemp, Log, TEXT("[Production] Début production : %s (%.1fs)"),
-		*UnitClass->GetName(), TotalProductionTime);
+	UE_LOG(LogTemp, Log, TEXT("[Production] Started production: %s (%.1f seconds)"), *UnitClass->GetName(), TotalProductionTime);
 }
 
 void UUnitProductionComponent::CancelProduction()
 {
 	if (bIsProducing)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[Production] Production annulée."));
+		UE_LOG(LogTemp, Warning, TEXT("[Production] Production canceled."));
 
 		bIsProducing = false;
 		TimeRemaining = 0.0f;

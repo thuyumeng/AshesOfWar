@@ -4,59 +4,80 @@
 #include "Components/ActorComponent.h"
 #include "UConstructionComponent.generated.h"
 
-UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+// Forward declarations
+class ABaseBuilding;
+class AMiner;
+
+/**
+ * UConstructionComponent
+ * 
+ * Component responsible for managing the construction progress of a building over time.
+ */
+UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
 class ASHESOFWAR_API UConstructionComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
-	// Constructeur
+	// Constructor
 	UConstructionComponent();
 
 protected:
-	// Appelé au début du jeu
+	/** Called when the game starts. */
 	virtual void BeginPlay() override;
 
 public:
-	// Démarre la construction du bâtiment
+	/**
+	 * Starts construction with the specified required time.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Construction")
 	void BeginConstruction(float TimeRequired);
 
-	// Appelé à chaque tick (ou à intervalles contrôlés) pour faire progresser la construction
+	/**
+	 * Ticks the construction manually (used by external manager or game tick).
+	 */
 	void TickConstruction(float DeltaTime);
 
-	// Ajoute un ouvrier participant à la construction (optionnel si applicable)
+	/**
+	 * Adds a worker (e.g., Miner) to speed up construction.
+	 */
 	void AddWorker(AActor* Worker);
 
-	// Retire un ouvrier (ex. : s’il meurt ou s’en va)
+	/**
+	 * Removes a worker (e.g., if dead or leaving).
+	 */
 	void RemoveWorker(AActor* Worker);
 
-	// Vérifie si la construction est terminée
+	/**
+	 * Returns whether construction is completed.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Construction")
 	bool IsConstructionComplete() const;
 
-	// Renvoie la progression actuelle (0.0f à 1.0f)
+	/**
+	 * Returns the normalized construction progress (0.0 to 1.0).
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Construction")
 	float GetProgressRatio() const;
 
 private:
-	// Temps requis total pour construire ce bâtiment (secondes)
+	/** Total time required to complete construction (in seconds). */
 	UPROPERTY(EditAnywhere, Category = "Construction")
 	float TotalConstructionTime;
 
-	// Temps actuel de construction accumulé
+	/** Current accumulated construction time. */
 	UPROPERTY(VisibleAnywhere, Category = "Construction")
 	float CurrentProgressTime;
 
-	// Progression normalisée (0 à 1)
+	/** Normalized construction progress ratio. */
 	UPROPERTY(VisibleAnywhere, Category = "Construction")
 	float ProgressRatio;
 
-	// Liste des ouvriers actifs participant à la construction
+	/** List of active workers currently assigned to construction. */
 	UPROPERTY()
 	TArray<AActor*> ActiveWorkers;
 
-	// Est-ce que la construction est terminée ?
+	/** Whether the construction has been completed. */
 	UPROPERTY(VisibleAnywhere, Category = "Construction")
 	bool bIsComplete;
 };

@@ -5,8 +5,9 @@
 #include "Technoforgeur.generated.h"
 
 /**
- * Technoforgeur
- * Unité spéciale Steampunk : récolteur, constructeur, réparateur.
+ * ATechnoforgeur
+ * 
+ * Special Steampunk worker unit: gathers resources, constructs buildings, and repairs nearby allies over time.
  */
 UCLASS()
 class ASHESOFWAR_API ATechnoforgeur : public AMiner
@@ -14,26 +15,28 @@ class ASHESOFWAR_API ATechnoforgeur : public AMiner
 	GENERATED_BODY()
 
 public:
+	// Constructor
 	ATechnoforgeur();
 
 protected:
+	/** Called when the unit is initialized. */
 	virtual void BeginPlay() override;
 
-	// Fonction pour démarrer la réparation automatique (optionnelle si avec Timer)
+	/** Starts the passive repair aura (called in BeginPlay). */
 	void StartRepairAura();
 
-	// Fonction appelée périodiquement pour soigner les alliés proches
+	/** Periodically called function to heal nearby mechanical allies. */
 	void RepairNearbyAllies();
 
 protected:
-	// Timer pour l'aura de réparation
+	/** Timer handle for the repair aura effect. */
 	FTimerHandle RepairAuraTimerHandle;
 
-	// Rayon d'effet pour trouver les alliés mécaniques
+	/** Radius within which nearby units are repaired. */
 	UPROPERTY(EditDefaultsOnly, Category = "Repair")
 	float RepairRadius = 400.f;
 
-	// Quantité de vie réparée par tick
+	/** Amount of health restored per second to nearby units. */
 	UPROPERTY(EditDefaultsOnly, Category = "Repair")
 	float RepairAmountPerSecond = 5.f;
 };

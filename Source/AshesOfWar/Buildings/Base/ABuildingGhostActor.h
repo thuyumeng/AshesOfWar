@@ -4,11 +4,14 @@
 #include "GameFramework/Actor.h"
 #include "ABuildingGhostActor.generated.h"
 
+// Forward declarations to reduce unnecessary includes
 class UStaticMeshComponent;
 class UMaterialInstanceDynamic;
 
 /**
- * Acteur fantôme servant à prévisualiser l’emplacement du bâtiment.
+ * ABuildingGhostActor
+ *
+ * Temporary visual actor used to preview building placement in RTS-style gameplay.
  */
 UCLASS()
 class ASHESOFWAR_API ABuildingGhostActor : public AActor
@@ -16,24 +19,36 @@ class ASHESOFWAR_API ABuildingGhostActor : public AActor
 	GENERATED_BODY()
 
 public:
-	// Constructeur
+	// Constructor
 	ABuildingGhostActor();
 
-	// Met à jour la position du ghost selon la souris
+	/**
+	 * Updates the ghost actor's world location based on the mouse cursor.
+	 * Performs a raycast under the mouse to find a valid ground position.
+	 */
 	void UpdateLocationFromMouse();
 
-	// Applique une couleur selon la validité du placement
+	/**
+	 * Updates the ghost actor's material color based on whether the placement is valid.
+	 * Green for valid placement, red for invalid placement.
+	 */
 	void SetValidPlacement(bool bIsValid);
 
-	// Applique le mesh du bâtiment à prévisualiser
+	/**
+	 * Sets the static mesh to be used for previewing the building.
+	 */
 	void SetPreviewMesh(UStaticMesh* MeshToPreview);
 
 private:
-	// Composant visuel du bâtiment fantôme
+	/** 
+	 * Visual static mesh component for the ghost actor.
+	 */
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	UStaticMeshComponent* PreviewMesh;
 
-	// Matériau dynamique utilisé pour le feedback visuel
+	/**
+	 * Dynamic material instance used to change the ghost's color during placement.
+	 */
 	UPROPERTY()
 	UMaterialInstanceDynamic* DynamicMaterial;
 };

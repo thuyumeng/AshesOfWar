@@ -8,22 +8,20 @@
 
 ATechnoforgeur::ATechnoforgeur()
 {
-	// Le GameplayEffect appliqué dans BeginPlay va définir ses vraies stats
+	// Custom attributes are initialized via DefaultAttributeEffect already
 }
 
 void ATechnoforgeur::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Initialisation des attributs via DefaultAttributeEffect (déjà dans Unit)
-	// Le Techno aura ses propres valeurs
-
-	// Démarrer la réparation automatique
+	// Start the passive repair aura when the unit spawns
 	StartRepairAura();
 }
 
 void ATechnoforgeur::StartRepairAura()
 {
+	// Set up a repeating timer to call RepairNearbyAllies every second
 	GetWorldTimerManager().SetTimer(RepairAuraTimerHandle, this, &ATechnoforgeur::RepairNearbyAllies, 1.0f, true);
 }
 
@@ -37,24 +35,25 @@ void ATechnoforgeur::RepairNearbyAllies()
 		AUnit* AllyUnit = Cast<AUnit>(Actor);
 		if (AllyUnit && AllyUnit != this)
 		{
-			float Distance = FVector::Dist(GetActorLocation(), AllyUnit->GetActorLocation());
+			const float Distance = FVector::Dist(GetActorLocation(), AllyUnit->GetActorLocation());
 			if (Distance <= RepairRadius)
 			{
+				// Access the Ability System Component and AttributeSet
 				UAOWAbilitySystemComponent* ASC = Cast<UAOWAbilitySystemComponent>(AllyUnit->GetAbilitySystemComponent());
 				if (ASC)
 				{
 					const UAOWAttributeSet* ConstAttrSet = ASC->GetSet<UAOWAttributeSet>();
 					if (ConstAttrSet)
 					{
-						// Caster vers non-const pour pouvoir modifier
+						// Remove const to modify attributes (safe because we control the call)
 						UAOWAttributeSet* AttrSet = const_cast<UAOWAttributeSet*>(ConstAttrSet);
 
-						float CurrentHP = AttrSet->GetHealth();
-						float MaxHP = AttrSet->GetMaxHealth();
+						const float CurrentHP = AttrSet->GetHealth();
+						const float MaxHP = AttrSet->GetMaxHealth();
 
 						if (CurrentHP < MaxHP)
 						{
-							float NewHealth = FMath::Min(CurrentHP + RepairAmountPerSecond, MaxHP);
+							const float NewHealth = FMath::Min(CurrentHP + RepairAmountPerSecond, MaxHP);
 							AttrSet->SetHealth(NewHealth);
 						}
 					}
@@ -63,4 +62,3 @@ void ATechnoforgeur::RepairNearbyAllies()
 		}
 	}
 }
-

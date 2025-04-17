@@ -7,9 +7,11 @@
 UResearchComponent::UResearchComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
+
+	// Initialize defaults
 	bIsResearching = false;
-	CurrentResearchTimeRemaining = 0.f;
-	TotalResearchTime = 0.f;
+	CurrentResearchTimeRemaining = 0.0f;
+	TotalResearchTime = 0.0f;
 }
 
 void UResearchComponent::BeginPlay()
@@ -21,24 +23,35 @@ void UResearchComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!bIsResearching) return;
+	if (!bIsResearching)
+	{
+		return;
+	}
 
+	// Update research progress
 	CurrentResearchTimeRemaining -= DeltaTime;
 
-	if (CurrentResearchTimeRemaining <= 0.f)
+	// If research is completed
+	if (CurrentResearchTimeRemaining <= 0.0f)
 	{
 		bIsResearching = false;
 
-		UE_LOG(LogTemp, Log, TEXT("Recherche complétée : %s"), *CurrentResearchID.ToString());
+		UE_LOG(LogTemp, Log, TEXT("Research completed: %s"), *CurrentResearchID.ToString());
 
-		// Tu peux ici appliquer les effets débloqués, ajouter un tag ou notifier le GameState
+		// TODO: Implement logic here to apply research effects, unlock tech, or notify the GameState
 	}
 }
 
 void UResearchComponent::StartResearch(FName ResearchID)
 {
-	if (bIsResearching) return;
+	// Prevent starting a new research if one is already active
+	if (bIsResearching)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("StartResearch: Already researching another project."));
+		return;
+	}
 
+	// Search for the requested research in the available list
 	for (const FResearchData& Entry : AvailableResearch)
 	{
 		if (Entry.ResearchID == ResearchID)
@@ -48,12 +61,12 @@ void UResearchComponent::StartResearch(FName ResearchID)
 			CurrentResearchTimeRemaining = TotalResearchTime;
 			bIsResearching = true;
 
-			UE_LOG(LogTemp, Log, TEXT("Début recherche : %s (%.2fs)"), *ResearchID.ToString(), TotalResearchTime);
+			UE_LOG(LogTemp, Log, TEXT("Research started: %s (%.2fs)"), *ResearchID.ToString(), TotalResearchTime);
 			return;
 		}
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("StartResearch : ID '%s' introuvable dans la liste."), *ResearchID.ToString());
+	UE_LOG(LogTemp, Warning, TEXT("StartResearch: Research ID '%s' not found in the available list."), *ResearchID.ToString());
 }
 
 bool UResearchComponent::IsResearching() const

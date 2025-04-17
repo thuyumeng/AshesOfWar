@@ -5,9 +5,8 @@
 #include "AshesOfWar/Resources/Nodes/AResourceNode.h"
 #include "AshesOfWar/Buildings/Base/ABaseBuilding.h"
 #include "AshesOfWar/Core/GameStates/ARTSGameState.h"
-#include "AshesOfWar/Resources/ResourcesTypes/EResourceType.h"
-#include "EngineUtils.h" // Pour TActorIterator
-#include "AshesOfWar/Buildings/Base/EBuildingType.h" // Pour EBuildingType
+#include "EngineUtils.h"
+#include "AshesOfWar/Buildings/Base/EBuildingType.h"
 #include "GameFramework/PlayerState.h"
 
 AMiner::AMiner()
@@ -47,6 +46,8 @@ void AMiner::Tick(float DeltaTime)
 	}
 }
 
+// --- Mining Logic ---
+
 void AMiner::HandleMining(float DeltaTime)
 {
 	if (!ResourceComponent) return;
@@ -56,7 +57,6 @@ void AMiner::HandleMining(float DeltaTime)
 
 	if (Resource->GetQteDisponible() <= 0)
 	{
-		// Minerai épuisé
 		StopMining();
 		ResourceComponent->SetCurrentResourceNode(nullptr);
 		return;
@@ -109,8 +109,10 @@ void AMiner::MoveToDeposit()
 
 void AMiner::DepositAtBase()
 {
-	if (CarriedAmount <= 0) return;
-	if (!CurrentDepositBaseTarget) return;
+	if (CarriedAmount <= 0 || !CurrentDepositBaseTarget)
+	{
+		return;
+	}
 
 	AARTSGameState* GameState = GetWorld()->GetGameState<AARTSGameState>();
 	if (GameState)
@@ -153,6 +155,8 @@ void AMiner::FindNearestHQBase()
 	CurrentDepositBaseTarget = BestBase;
 }
 
+// --- Movement Logic ---
+
 void AMiner::MoveToLocation(const FVector& Destination)
 {
 	AUnitAIController* AIController = Cast<AUnitAIController>(GetController());
@@ -161,6 +165,8 @@ void AMiner::MoveToLocation(const FVector& Destination)
 		AIController->MoveToLocation(Destination, 10.f);
 	}
 }
+
+// --- Resource Interface ---
 
 void AMiner::MineResource()
 {
@@ -199,6 +205,8 @@ UResourceComponent* AMiner::GetResourceComponent() const
 	return ResourceComponent;
 }
 
+// --- Construction Interface ---
+
 void AMiner::AddConstructionTarget(AActor* Building)
 {
 	if (Building && !ActiveConstructionTargets.Contains(Building))
@@ -220,6 +228,8 @@ bool AMiner::IsConstructing() const
 	return ActiveConstructionTargets.Num() > 0;
 }
 
+// --- Query Status ---
+
 bool AMiner::IsDepositing() const
 {
 	return bIsDepositing;
@@ -234,4 +244,3 @@ AActor* AMiner::GetCurrentResourceTarget() const
 {
 	return ResourceComponent ? Cast<AActor>(ResourceComponent->GetCurrentResourceNode()) : nullptr;
 }
-

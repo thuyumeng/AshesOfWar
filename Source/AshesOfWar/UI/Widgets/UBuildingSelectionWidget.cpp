@@ -1,17 +1,18 @@
 #include "UBuildingSelectionWidget.h"
 
-// Initialise la liste des bâtiments affichables à l'écran
 void UBuildingSelectionWidget::InitializeBuildingList(const TArray<FBuildingInfo>& AvailableBuildings)
 {
-	// Étape 1 : Sauvegarde la liste localement
+	// Step 1: Save the list locally
 	DisplayedBuildings = AvailableBuildings;
 
-	// Étape 2 : Nettoie l'UI actuelle (ex. : panel vertical, scroll box, etc.)
+	// Step 2: Clear the current UI (e.g., vertical panel, scroll box)
+	// Note: Should be handled via Blueprint logic or dynamic widget generation in C++
 
-	// Étape 3 : Pour chaque FBuildingInfo, créer dynamiquement un widget enfant :
-	// - Afficher l'icône du bâtiment
-	// - Afficher le nom et le coût
-	// - Ajouter un bouton (Bind OnClicked → appelle OnBuildingSelected avec BuildingID)
-    
-	// ⚠️ À faire depuis le Blueprint ou avec un UVerticalBox dans C++ si tu veux le gérer côté code pur
+	// Step 3: For each FBuildingInfo, dynamically create a child widget:
+	// - Display building icon
+	// - Display building name and cost
+	// - Add a button (Bind OnClicked → call OnBuildingSelected(BuildingID))
+
+	// ⚠️ This part is intentionally left for Blueprint customization 
+	// or can be handled in C++ with UVerticalBox or similar if needed.
 }

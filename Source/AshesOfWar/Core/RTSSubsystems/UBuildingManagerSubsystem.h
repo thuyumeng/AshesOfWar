@@ -5,10 +5,14 @@
 #include "AshesOfWar/Buildings/Base/ABaseBuilding.h"
 #include "UBuildingManagerSubsystem.generated.h"
 
+// Forward declarations
 class ABuildingGhostActor;
 
 /**
- * Gère le placement de bâtiments, la vérification des coûts, du terrain, et le spawn du ghost.
+ * UBuildingManagerSubsystem
+ *
+ * Handles building placement, resource cost verification, terrain validation,
+ * and manages the spawn/clearance of building ghost previews.
  */
 UCLASS()
 class ASHESOFWAR_API UBuildingManagerSubsystem : public UGameInstanceSubsystem
@@ -16,30 +20,39 @@ class ASHESOFWAR_API UBuildingManagerSubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public:
-	// Initialisation du subsystem
+	/** Initializes the subsystem at GameInstance start. */
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
 
-	// Tente de placer un bâtiment à un emplacement donné
+	/**
+	 * Attempts to place a building at a specified location.
+	 * @param Location - World location where placement is attempted.
+	 * @param BuildingClass - Class of the building to place.
+	 * @return True if placement was successful.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Building")
 	bool TryPlaceBuildingAtLocation(const FVector& Location, TSubclassOf<ABaseBuilding> BuildingClass);
 
-	// Supprime le ghost actuel (ex: si annulation)
+	/**
+	 * Destroys the current building ghost actor, if any.
+	 */
 	UFUNCTION(BlueprintCallable, Category = "Building")
 	void ClearGhost();
 
-	// Retourne l'instance active du GhostActor
+	/**
+	 * Returns the currently active ghost actor (if one exists).
+	 */
 	ABuildingGhostActor* GetCurrentGhost() const;
 
 private:
-	// Classe du ghost à instancier
+	/** Class used to spawn the building ghost. */
 	UPROPERTY(EditDefaultsOnly, Category = "Building")
 	TSubclassOf<ABuildingGhostActor> GhostActorClass;
 
-	// Référence au ghost actif
+	/** Currently active ghost actor instance. */
 	UPROPERTY()
 	ABuildingGhostActor* CurrentGhost;
 
-	// Classe de bâtiment sélectionnée par le joueur
+	/** Building class currently selected for placement by the player. */
 	UPROPERTY()
 	TSubclassOf<ABaseBuilding> SelectedBuildingClass;
 };

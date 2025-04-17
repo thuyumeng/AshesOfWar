@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "MainHUD.h"
 #include "AshesOfWar/Units/Base/Unit.h"
 #include "AshesOfWar/Core/PlayerControllers/ARTSPlayerController.h"
@@ -9,7 +6,7 @@ void AMainHUD::DrawHUD()
 {
 	Super::DrawHUD();
 
-	// Draw the selection rectangle if it is valid
+	// Draw the selection rectangle if active
 	if (bDrawSelectionRect)
 	{
 		DrawRect(
@@ -19,8 +16,13 @@ void AMainHUD::DrawHUD()
 			SelectionRectSize.X,
 			SelectionRectSize.Y);
 
-		// This function can only be called when dragging the selection box
-		GetActorsInSelectionRectangle<AUnit>(SelectionRectStart, SelectionRectStart + SelectionRectSize, SelectedUnits, false);
+		// Update the list of units currently within the selection box
+		GetActorsInSelectionRectangle<AUnit>(
+			SelectionRectStart,
+			SelectionRectStart + SelectionRectSize,
+			SelectedUnits,
+			false
+		);
 	}
 }
 
@@ -35,12 +37,18 @@ void AMainHUD::ShowSelectionRect(const FVector2D& Start, const FVector2D& Size, 
 void AMainHUD::HideSelectionRect()
 {
 	if (!bDrawSelectionRect)
+	{
 		return;
+	}
+
 	bDrawSelectionRect = false;
+
+	// Notify the player controller of the selected units
 	if (ARTSPlayerController* PlayerController = Cast<ARTSPlayerController>(GetOwningPlayerController()))
 	{
 		PlayerController->SetSelectedUnits(SelectedUnits);
 	}
-	// clear the SelectedUnits
+
+	// Clear the list for the next selection
 	SelectedUnits.Empty();
 }

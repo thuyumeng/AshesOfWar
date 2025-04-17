@@ -17,32 +17,44 @@ void UBuildingManagerSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
 
-	// ⚠️ Tu dois définir GhostActorClass depuis le GameInstance ou via Blueprint
+	// ⚠️ Reminder: You must assign GhostActorClass from Blueprint/GameInstance!
 }
 
 bool UBuildingManagerSubsystem::TryPlaceBuildingAtLocation(const FVector& Location, TSubclassOf<ABaseBuilding> BuildingClass)
 {
 	if (!BuildingClass)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("TryPlaceBuildingAtLocation - Classe de bâtiment invalide."));
+		UE_LOG(LogTemp, Warning, TEXT("TryPlaceBuildingAtLocation - Invalid building class."));
 		return false;
 	}
 
 	UWorld* World = GetWorld();
-	if (!World) return false;
+	if (!World)
+	{
+		return false;
+	}
 
 	APlayerController* PC = UGameplayStatics::GetPlayerController(World, 0);
-	if (!PC) return false;
+	if (!PC)
+	{
+		return false;
+	}
 
 	APlayerState* PlayerState = PC->GetPlayerState<APlayerState>();
-	if (!PlayerState) return false;
+	if (!PlayerState)
+	{
+		return false;
+	}
 
 	const ABaseBuilding* BuildingCDO = BuildingClass->GetDefaultObject<ABaseBuilding>();
-	if (!BuildingCDO) return false;
+	if (!BuildingCDO)
+	{
+		return false;
+	}
 
 	const FBuildingInfo& Info = BuildingCDO->BuildingData;
 
-	// Convertir TMap<EResourceType, int32> → FPlayerResourceData pour le CanAfford()
+	// Convert ResourceCost TMap into FPlayerResourceData
 	FPlayerResourceData BuildingCost;
 	for (const TPair<EResourceType, int32>& Pair : Info.ResourceCost)
 	{
@@ -64,23 +76,26 @@ bool UBuildingManagerSubsystem::TryPlaceBuildingAtLocation(const FVector& Locati
 
 	if (!UResourceLibrary::CanAfford(PlayerState, BuildingCost))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Le joueur n’a pas les ressources nécessaires."));
+		UE_LOG(LogTemp, Warning, TEXT("TryPlaceBuildingAtLocation - Player cannot afford building."));
 		return false;
 	}
 
-	// Raycast au sol
+	// Perform ground hit check under mouse
 	FHitResult Hit;
 	PC->GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery1, true, Hit);
-	if (!Hit.bBlockingHit) return false;
+	if (!Hit.bBlockingHit)
+	{
+		return false;
+	}
 
 	FVector HitLocation = Hit.ImpactPoint;
-	bool bPlacementValide = false;
+	bool bIsPlacementValid = false;
 
-	// 1. Vérifier la pente
+	// 1. Check slope (Z normal)
 	const float SurfaceZ = Hit.ImpactNormal.Z;
-	const bool bSurfacePlat = SurfaceZ >= 0.9f;
+	const bool bSurfaceIsFlat = SurfaceZ >= 0.9f;
 
-	// 2. Vérifier qu’aucun obstacle
+	// 2. Check for obstacle collision using BoxComponent
 	FVector BoxExtent(0.f);
 	if (const UBoxComponent* Box = BuildingCDO->FindComponentByClass<UBoxComponent>())
 	{
@@ -95,10 +110,10 @@ bool UBuildingManagerSubsystem::TryPlaceBuildingAtLocation(const FVector& Locati
 			AdjustedLocation, AdjustedLocation, FQuat::Identity,
 			ECC_WorldStatic, Shape, Params);
 
-		bPlacementValide = bSurfacePlat && !bObstacle;
+		bIsPlacementValid = bSurfaceIsFlat && !bObstacle;
 	}
 
-	// Créer ou mettre à jour le GhostActor
+	// Spawn the ghost actor if needed
 	if (!CurrentGhost && GhostActorClass)
 	{
 		FActorSpawnParameters SpawnParams;
@@ -118,25 +133,28 @@ bool UBuildingManagerSubsystem::TryPlaceBuildingAtLocation(const FVector& Locati
 	if (CurrentGhost)
 	{
 		CurrentGhost->SetActorLocation(HitLocation);
-		CurrentGhost->SetValidPlacement(bPlacementValide);
+		CurrentGhost->SetValidPlacement(bIsPlacementValid);
 
-		if (PC->WasInputKeyJustPressed(EKeys::LeftMouseButton) && bPlacementValide)
+		if (PC->WasInputKeyJustPressed(EKeys::LeftMouseButton) && bIsPlacementValid)
 		{
-			// Déduction des ressources une par une
+			// Spend resources
 			AARTSGameState* GameState = Cast<AARTSGameState>(UGameplayStatics::GetGameState(World));
-			if (!GameState) return false;
+			if (!GameState)
+			{
+				return false;
+			}
 
 			for (const TPair<EResourceType, int32>& Pair : Info.ResourceCost)
 			{
 				GameState->SpendResource(PlayerState, Pair.Key, Pair.Value);
 			}
 
-			// Spawn du vrai bâtiment
-			FActorSpawnParameters FinalParams;
-			FinalParams.Owner = PC;
-			FinalParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+			// Spawn final building
+			FActorSpawnParameters FinalSpawnParams;
+			FinalSpawnParams.Owner = PC;
+			FinalSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-			ABaseBuilding* NewBuilding = World->SpawnActor<ABaseBuilding>(BuildingClass, HitLocation, FRotator::ZeroRotator, FinalParams);
+			ABaseBuilding* NewBuilding = World->SpawnActor<ABaseBuilding>(BuildingClass, HitLocation, FRotator::ZeroRotator, FinalSpawnParams);
 			if (NewBuilding)
 			{
 				NewBuilding->OwningPlayer = PlayerState;
