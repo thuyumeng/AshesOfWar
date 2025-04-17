@@ -1,6 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "AshesOfWar/Resources/ResourcesTypes/EResourceType.h"
+#include "AshesOfWar/Buildings/Base/EBuildingType.h"
 #include "FBuildingInfo.generated.h"
 
 USTRUCT(BlueprintType)

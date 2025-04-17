@@ -8,6 +8,7 @@
 #include "AshesOfWar/Resources/ResourcesTypes/EResourceType.h"
 #include "EngineUtils.h" // Pour TActorIterator
 #include "AshesOfWar/Buildings/Base/EBuildingType.h" // Pour EBuildingType
+#include "GameFramework/PlayerState.h"
 
 AMiner::AMiner()
 {
@@ -114,10 +115,10 @@ void AMiner::DepositAtBase()
 	AARTSGameState* GameState = GetWorld()->GetGameState<AARTSGameState>();
 	if (GameState)
 	{
-		APlayerState* PlayerState = GetPlayerState<APlayerState>();
-		if (PlayerState)
+		APlayerState* MyPlayerState = GetPlayerState<APlayerState>();
+		if (MyPlayerState)
 		{
-			GameState->AddResource(PlayerState, CarriedResourceType, CarriedAmount);
+			GameState->AddResource(MyPlayerState, CarriedResourceType, CarriedAmount);
 		}
 	}
 

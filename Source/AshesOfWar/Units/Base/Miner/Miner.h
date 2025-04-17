@@ -65,7 +65,8 @@ public:
 	// Retourne le minerai cible actuel
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	AActor* GetCurrentResourceTarget() const;
-
+	
+	void MoveToLocation(const FVector& Destination);
 
 protected:
 	// Récolte
@@ -76,9 +77,6 @@ protected:
 	void MoveToDeposit();
 	void DepositAtBase();
 	void FindNearestHQBase();
-
-	// Move vers location
-	void MoveToLocation(const FVector& Destination);
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Resource", meta = (AllowPrivateAccess = "true"))
