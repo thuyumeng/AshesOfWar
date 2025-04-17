@@ -4,13 +4,15 @@
 #include "AshesOfWar/Resources/Management/UResourceComponent.h"
 #include "AshesOfWar/Resources/Nodes/AResourceNode.h"
 #include "AshesOfWar/Buildings/Base/ABaseBuilding.h"
-#include "StateTree.h"
+#include "AshesOfWar/Core/GameStates/ARTSGameState.h"
+#include "AshesOfWar/Resources/ResourcesTypes/EResourceType.h"
+#include "EngineUtils.h" // Pour TActorIterator
+#include "AshesOfWar/Buildings/Base/EBuildingType.h" // Pour EBuildingType
 
 AMiner::AMiner()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Create the resource component (not attached to scene hierarchy)
 	ResourceComponent = CreateDefaultSubobject<UResourceComponent>(TEXT("ResourceComponent"));
 }
 
@@ -19,89 +21,143 @@ void AMiner::OnBeginPlay_Implementation()
 	Super::OnBeginPlay_Implementation();
 
 	AUnitAIController* AIController = GetAIController();
-	if (!AIController)
+	if (AIController)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[Miner] Missing AIController"));
-		return;
+		UUnitStateTreeAIComponent* StateTreeAIComponent = AIController->GetUnitStateTreeAIComponent();
+		if (StateTreeAIComponent && MinerStateTreeAsset)
+		{
+			StateTreeAIComponent->SetStateTree(MinerStateTreeAsset);
+			StateTreeAIComponent->StartLogic();
+		}
 	}
-
-	UUnitStateTreeAIComponent* StateTreeAIComponent = AIController->GetUnitStateTreeAIComponent();
-	if (!StateTreeAIComponent)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[Miner] Missing StateTreeAIComponent"));
-		return;
-	}
-
-	if (!MinerStateTreeAsset)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[Miner] No StateTree asset assigned"));
-		return;
-	}
-
-	// Assign and start StateTree AI logic
-	StateTreeAIComponent->SetStateTree(MinerStateTreeAsset);
-	StateTreeAIComponent->StartLogic();
 }
 
 void AMiner::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Priorité 1 : Construction
-	if (ActiveConstructionTargets.Num() > 0)
+	if (bIsDepositing)
 	{
-		for (int32 i = ActiveConstructionTargets.Num() - 1; i >= 0; --i)
-		{
-			AActor* Target = ActiveConstructionTargets[i];
-			if (!Target)
-			{
-				ActiveConstructionTargets.RemoveAt(i);
-				continue;
-			}
-
-			ABaseBuilding* Building = Cast<ABaseBuilding>(Target);
-			if (!Building)
-			{
-				ActiveConstructionTargets.RemoveAt(i);
-				continue;
-			}
-
-			if (Building->ConstructionProgress >= 1.f)
-			{
-				RemoveConstructionTarget(Building);
-				continue;
-			}
-
-			float Distance = FVector::Dist(GetActorLocation(), Building->GetActorLocation());
-			if (Distance <= ConstructionDistanceThreshold)
-			{
-				// Construire
-				Building->ConstructionProgress += DeltaTime * ConstructionRate;
-
-				// Clamp pour ne pas dépasser 1.0
-				Building->ConstructionProgress = FMath::Clamp(Building->ConstructionProgress, 0.f, 1.f);
-
-				// TODO: Appeler animation via Blueprint (ex: PlayConstructionAnimation)
-			}
-			else
-			{
-				// TODO: Déplacer automatiquement vers le bâtiment (MoveTo)
-			}
-		}
-
-		return; // Ne mine pas si on est occupé à construire
+		HandleDepositing(DeltaTime);
 	}
+	else
+	{
+		HandleMining(DeltaTime);
+	}
+}
 
-	// Priorité 2 : Mining automatique
+void AMiner::HandleMining(float DeltaTime)
+{
 	if (!ResourceComponent) return;
 
 	AAResourceNode* Resource = ResourceComponent->GetCurrentResourceNode();
-	if (Resource && FVector::Dist(GetActorLocation(), Resource->GetActorLocation()) < 150.f)
+	if (!Resource) return;
+
+	if (Resource->GetQteDisponible() <= 0)
 	{
-		if (!ResourceComponent->IsCollecting())
+		// Minerai épuisé
+		StopMining();
+		ResourceComponent->SetCurrentResourceNode(nullptr);
+		return;
+	}
+
+	if (FVector::Dist(GetActorLocation(), Resource->GetActorLocation()) <= MiningDistanceThreshold)
+	{
+		CarriedResourceType = Resource->GetResourceType();
+		CarriedAmount += CollectionRatePerSecond * DeltaTime;
+		CarriedAmount = FMath::Clamp(CarriedAmount, 0, CarriedCapacity);
+
+		if (CarriedAmount >= CarriedCapacity)
 		{
-			MineResource();
+			bIsDepositing = true;
+			FindNearestHQBase();
+			MoveToDeposit();
 		}
+	}
+	else
+	{
+		MoveToLocation(Resource->GetActorLocation());
+	}
+}
+
+void AMiner::HandleDepositing(float DeltaTime)
+{
+	if (!CurrentDepositBaseTarget)
+	{
+		FindNearestHQBase();
+		if (!CurrentDepositBaseTarget) return;
+	}
+
+	if (FVector::Dist(GetActorLocation(), CurrentDepositBaseTarget->GetActorLocation()) <= DepositDistanceThreshold)
+	{
+		DepositAtBase();
+	}
+	else
+	{
+		MoveToLocation(CurrentDepositBaseTarget->GetActorLocation());
+	}
+}
+
+void AMiner::MoveToDeposit()
+{
+	if (CurrentDepositBaseTarget)
+	{
+		MoveToLocation(CurrentDepositBaseTarget->GetActorLocation());
+	}
+}
+
+void AMiner::DepositAtBase()
+{
+	if (CarriedAmount <= 0) return;
+	if (!CurrentDepositBaseTarget) return;
+
+	AARTSGameState* GameState = GetWorld()->GetGameState<AARTSGameState>();
+	if (GameState)
+	{
+		APlayerState* PlayerState = GetPlayerState<APlayerState>();
+		if (PlayerState)
+		{
+			GameState->AddResource(PlayerState, CarriedResourceType, CarriedAmount);
+		}
+	}
+
+	CarriedAmount = 0;
+	bIsDepositing = false;
+}
+
+void AMiner::FindNearestHQBase()
+{
+	AARTSGameState* GameState = GetWorld()->GetGameState<AARTSGameState>();
+	if (!GameState) return;
+
+	float MinDistance = TNumericLimits<float>::Max();
+	ABaseBuilding* BestBase = nullptr;
+
+	for (TActorIterator<ABaseBuilding> It(GetWorld()); It; ++It)
+	{
+		ABaseBuilding* Base = *It;
+		if (!Base) continue;
+
+		if (Base->BuildingData.BuildingType == EBuildingType::HQ)
+		{
+			float Distance = FVector::Dist(GetActorLocation(), Base->GetActorLocation());
+			if (Distance < MinDistance)
+			{
+				MinDistance = Distance;
+				BestBase = Base;
+			}
+		}
+	}
+
+	CurrentDepositBaseTarget = BestBase;
+}
+
+void AMiner::MoveToLocation(const FVector& Destination)
+{
+	AUnitAIController* AIController = Cast<AUnitAIController>(GetController());
+	if (AIController)
+	{
+		AIController->MoveToLocation(Destination, 10.f);
 	}
 }
 
@@ -162,3 +218,19 @@ bool AMiner::IsConstructing() const
 {
 	return ActiveConstructionTargets.Num() > 0;
 }
+
+bool AMiner::IsDepositing() const
+{
+	return bIsDepositing;
+}
+
+AActor* AMiner::GetCurrentDepositTarget() const
+{
+	return CurrentDepositBaseTarget;
+}
+
+AActor* AMiner::GetCurrentResourceTarget() const
+{
+	return ResourceComponent ? Cast<AActor>(ResourceComponent->GetCurrentResourceNode()) : nullptr;
+}
+

@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "AshesOfWar/Units/Base/Unit.h"
 #include "UObject/SoftObjectPtr.h"
+#include "AshesOfWar/Resources/ResourcesTypes/EResourceType.h"
 #include "Miner.generated.h"
 
 class UResourceComponent;
@@ -12,7 +13,7 @@ class ABaseBuilding;
 
 /**
  * AMiner
- * Base class for all units that can gather resources or construct buildings.
+ * Unité de base pour la récolte et la construction.
  */
 UCLASS()
 class ASHESOFWAR_API AMiner : public AUnit
@@ -20,66 +21,98 @@ class ASHESOFWAR_API AMiner : public AUnit
 	GENERATED_BODY()
 
 public:
-	// Constructor
 	AMiner();
 
 protected:
-	// Called after BeginPlay
 	virtual void OnBeginPlay_Implementation() override;
+	virtual void Tick(float DeltaTime) override;
 
 public:
-	// Starts mining the current resource node
+	// Démarre la récolte
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void MineResource();
 
-	// Stops the current mining operation
+	// Arrête la récolte
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void StopMining();
 
-	// Deposits currently carried resources into a valid structure
+	// Dépôt manuel (ex: pour forcer via interface)
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void DepositCollectedResources();
 
-	// Sets the resource node to be mined
+	// Assigne un node à miner
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void SetCurrentResourceNode(AAResourceNode* NewNode);
 
-	// Returns the resource component of this unit
-	UFUNCTION(BlueprintCallable, Category = "Resource")
 	UResourceComponent* GetResourceComponent() const;
 
-	// Adds a construction target for this miner
+	// Construction
 	UFUNCTION(BlueprintCallable, Category = "Construction")
 	void AddConstructionTarget(AActor* Building);
-
-	// Removes a construction target when finished
 	UFUNCTION(BlueprintCallable, Category = "Construction")
 	void RemoveConstructionTarget(AActor* Building);
-
-	// Returns true if miner is currently constructing
 	UFUNCTION(BlueprintCallable, Category = "Construction")
 	bool IsConstructing() const;
 
-	// Tick logic to trigger mining or construction automatically
-	virtual void Tick(float DeltaTime) override;
+	// Indique si actuellement le miner est en train de déposer
+	UFUNCTION(BlueprintCallable, Category = "Resource")
+	bool IsDepositing() const;
 
-private:
-	// Component handling resource gathering logic
+	// Retourne la base cible actuelle pour déposer
+	UFUNCTION(BlueprintCallable, Category = "Resource")
+	AActor* GetCurrentDepositTarget() const;
+
+	// Retourne le minerai cible actuel
+	UFUNCTION(BlueprintCallable, Category = "Resource")
+	AActor* GetCurrentResourceTarget() const;
+
+
+protected:
+	// Récolte
+	void HandleMining(float DeltaTime);
+
+	// Transport / Dépôt
+	void HandleDepositing(float DeltaTime);
+	void MoveToDeposit();
+	void DepositAtBase();
+	void FindNearestHQBase();
+
+	// Move vers location
+	void MoveToLocation(const FVector& Destination);
+
+protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Resource", meta = (AllowPrivateAccess = "true"))
 	UResourceComponent* ResourceComponent;
 
-	// Reference to the StateTree asset used for AI behavior
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	UStateTree* MinerStateTreeAsset;
 
-	// List of active construction targets
 	UPROPERTY()
 	TArray<AActor*> ActiveConstructionTargets;
 
-	// Construction settings
-	UPROPERTY(EditDefaultsOnly, Category = "Construction")
-	float ConstructionDistanceThreshold = 200.f;
+	// Récolte
+	UPROPERTY(EditDefaultsOnly, Category = "Resource")
+	int32 CarriedCapacity = 50;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Construction")
-	float ConstructionRate = 0.2f; // Progression par seconde
+	UPROPERTY(VisibleAnywhere, Category = "Resource")
+	int32 CarriedAmount = 0;
+
+	UPROPERTY(VisibleAnywhere, Category = "Resource")
+	EResourceType CarriedResourceType = EResourceType::Aetherium;
+
+	// Mode
+	bool bIsDepositing = false;
+
+	// Dépôt
+	UPROPERTY()
+	ABaseBuilding* CurrentDepositBaseTarget;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Resource")
+	float MiningDistanceThreshold = 150.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Resource")
+	float DepositDistanceThreshold = 150.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Resource")
+	float CollectionRatePerSecond = 10.f; // 10 unités/s
 };

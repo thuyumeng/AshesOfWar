@@ -90,4 +90,14 @@ public:
 
 	UFUNCTION()
 	void OnRep_AttackDamage(const FGameplayAttributeData& OldAttackDamage) const;
+
+	// ------------ Defense ------------
+
+	UPROPERTY(BlueprintReadOnly, Category = "Defense", ReplicatedUsing = OnRep_DefenseRating)
+	FGameplayAttributeData DefenseRating;
+	ATTRIBUTE_ACCESSORS(UAOWAttributeSet, DefenseRating)
+
+	UFUNCTION()
+	void OnRep_DefenseRating(const FGameplayAttributeData& OldDefenseRating) const;
+
 };
