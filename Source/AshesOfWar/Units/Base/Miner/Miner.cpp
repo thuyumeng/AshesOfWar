@@ -3,6 +3,7 @@
 #include "AshesOfWar/AI/StateTree/UnitStateTreeAIComponent.h"
 #include "AshesOfWar/Resources/Management/UResourceComponent.h"
 #include "AshesOfWar/Resources/Nodes/AResourceNode.h"
+#include "AshesOfWar/Buildings/Base/ABaseBuilding.h"
 #include "StateTree.h"
 
 AMiner::AMiner()
@@ -37,23 +38,63 @@ void AMiner::OnBeginPlay_Implementation()
 		return;
 	}
 
-	// Log important for debugging StateTree assignment
-	UE_LOG(LogTemp, Log, TEXT("[Miner] Assigned StateTree: %s"), *MinerStateTreeAsset->GetName());
-
 	// Assign and start StateTree AI logic
 	StateTreeAIComponent->SetStateTree(MinerStateTreeAsset);
 	StateTreeAIComponent->StartLogic();
-
-	UE_LOG(LogTemp, Log, TEXT("[Miner] StateTree AI logic successfully started"));
 }
 
 void AMiner::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Priorité 1 : Construction
+	if (ActiveConstructionTargets.Num() > 0)
+	{
+		for (int32 i = ActiveConstructionTargets.Num() - 1; i >= 0; --i)
+		{
+			AActor* Target = ActiveConstructionTargets[i];
+			if (!Target)
+			{
+				ActiveConstructionTargets.RemoveAt(i);
+				continue;
+			}
+
+			ABaseBuilding* Building = Cast<ABaseBuilding>(Target);
+			if (!Building)
+			{
+				ActiveConstructionTargets.RemoveAt(i);
+				continue;
+			}
+
+			if (Building->ConstructionProgress >= 1.f)
+			{
+				RemoveConstructionTarget(Building);
+				continue;
+			}
+
+			float Distance = FVector::Dist(GetActorLocation(), Building->GetActorLocation());
+			if (Distance <= ConstructionDistanceThreshold)
+			{
+				// Construire
+				Building->ConstructionProgress += DeltaTime * ConstructionRate;
+
+				// Clamp pour ne pas dépasser 1.0
+				Building->ConstructionProgress = FMath::Clamp(Building->ConstructionProgress, 0.f, 1.f);
+
+				// TODO: Appeler animation via Blueprint (ex: PlayConstructionAnimation)
+			}
+			else
+			{
+				// TODO: Déplacer automatiquement vers le bâtiment (MoveTo)
+			}
+		}
+
+		return; // Ne mine pas si on est occupé à construire
+	}
+
+	// Priorité 2 : Mining automatique
 	if (!ResourceComponent) return;
 
-	// Automatically start mining when close enough to the resource node
 	AAResourceNode* Resource = ResourceComponent->GetCurrentResourceNode();
 	if (Resource && FVector::Dist(GetActorLocation(), Resource->GetActorLocation()) < 150.f)
 	{
@@ -99,4 +140,25 @@ void AMiner::SetCurrentResourceNode(AAResourceNode* NewNode)
 UResourceComponent* AMiner::GetResourceComponent() const
 {
 	return ResourceComponent;
+}
+
+void AMiner::AddConstructionTarget(AActor* Building)
+{
+	if (Building && !ActiveConstructionTargets.Contains(Building))
+	{
+		ActiveConstructionTargets.Add(Building);
+	}
+}
+
+void AMiner::RemoveConstructionTarget(AActor* Building)
+{
+	if (Building)
+	{
+		ActiveConstructionTargets.Remove(Building);
+	}
+}
+
+bool AMiner::IsConstructing() const
+{
+	return ActiveConstructionTargets.Num() > 0;
 }

@@ -5,10 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "FBuildingInfo.h"
+#include "AshesOfWar/Buildings/Interface/IBuildingInterface.h" // ✅ Ajout pour interface
 #include "ABaseBuilding.generated.h"
 
 UCLASS()
-class ASHESOFWAR_API ABaseBuilding : public AActor
+class ASHESOFWAR_API ABaseBuilding : public AActor, public IBuildingInterface
 {
 	GENERATED_BODY()
 
@@ -42,8 +43,11 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "Building")
 	float ConstructionProgress;
 
+	// Assigne le joueur propriétaire
 	void SetOwningPlayer(APlayerState* player);
-	
-	// TODO :
-	// * Ajouter : logique pour mettre à jour cette variable depuis le component de construction * //
+
+	// ✅ Méthodes de l'interface IBuildingInterface
+	virtual void OnConstructed() override;
+	virtual void OnDamaged(float DamageAmount) override;
+	virtual void OnRepaired(float RepairAmount) override;
 };

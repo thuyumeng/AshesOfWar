@@ -8,6 +8,7 @@
 class UResourceComponent;
 class AAResourceNode;
 class UStateTree;
+class ABaseBuilding;
 
 /**
  * AMiner
@@ -35,7 +36,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void StopMining();
 
-	// Deposits currently carried resources into a valid structure (to be implemented)
+	// Deposits currently carried resources into a valid structure
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void DepositCollectedResources();
 
@@ -47,7 +48,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	UResourceComponent* GetResourceComponent() const;
 
-	// Tick logic to trigger mining automatically
+	// Adds a construction target for this miner
+	UFUNCTION(BlueprintCallable, Category = "Construction")
+	void AddConstructionTarget(AActor* Building);
+
+	// Removes a construction target when finished
+	UFUNCTION(BlueprintCallable, Category = "Construction")
+	void RemoveConstructionTarget(AActor* Building);
+
+	// Returns true if miner is currently constructing
+	UFUNCTION(BlueprintCallable, Category = "Construction")
+	bool IsConstructing() const;
+
+	// Tick logic to trigger mining or construction automatically
 	virtual void Tick(float DeltaTime) override;
 
 private:
@@ -58,4 +71,15 @@ private:
 	// Reference to the StateTree asset used for AI behavior
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	UStateTree* MinerStateTreeAsset;
+
+	// List of active construction targets
+	UPROPERTY()
+	TArray<AActor*> ActiveConstructionTargets;
+
+	// Construction settings
+	UPROPERTY(EditDefaultsOnly, Category = "Construction")
+	float ConstructionDistanceThreshold = 200.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Construction")
+	float ConstructionRate = 0.2f; // Progression par seconde
 };

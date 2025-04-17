@@ -1,4 +1,4 @@
-// ABaseBuilding.cpp
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ABaseBuilding.h"
 #include "Components/StaticMeshComponent.h"
@@ -32,4 +32,21 @@ ABaseBuilding::ABaseBuilding()
 void ABaseBuilding::SetOwningPlayer(APlayerState* player)
 {
 	OwningPlayer = player;
+}
+
+// ✅ Implémentation de l'interface
+
+void ABaseBuilding::OnConstructed()
+{
+	UE_LOG(LogTemp, Log, TEXT("Bâtiment %s est maintenant construit."), *GetName());
+}
+
+void ABaseBuilding::OnDamaged(float DamageAmount)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Bâtiment %s a subi %.1f dégâts."), *GetName(), DamageAmount);
+}
+
+void ABaseBuilding::OnRepaired(float RepairAmount)
+{
+	UE_LOG(LogTemp, Log, TEXT("Bâtiment %s a été réparé de %.1f points."), *GetName(), RepairAmount);
 }
