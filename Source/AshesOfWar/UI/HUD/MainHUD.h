@@ -23,6 +23,9 @@ private:
 	UPROPERTY()
 	TArray<AUnit*> SelectedUnits;
 
+	UPROPERTY()
+	TSoftObjectPtr<UMaterialInterface> RightClickDecalMaterialInterface;
+
 protected:
 	virtual void DrawHUD() override;
 public:
@@ -37,4 +40,9 @@ public:
 	 * Hides the selection rectangle and finalizes the unit selection.
 	 */
 	void HideSelectionRect();
+
+	/**
+	 * Show the right click effect of the cursor
+	 */
+	void ShowRightClickEffect(const FVector& TargetLocation);
 };
