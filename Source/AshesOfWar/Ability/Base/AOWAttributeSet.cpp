@@ -20,13 +20,14 @@ void UAOWAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-    // Registers each attribute to be replicated across the network with notifications
     DOREPLIFETIME_CONDITION_NOTIFY(UAOWAttributeSet, Health, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UAOWAttributeSet, MaxHealth, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UAOWAttributeSet, HealthRegen, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UAOWAttributeSet, Speed, COND_None, REPNOTIFY_Always);
     DOREPLIFETIME_CONDITION_NOTIFY(UAOWAttributeSet, AttackDamage, COND_None, REPNOTIFY_Always);
+    DOREPLIFETIME_CONDITION_NOTIFY(UAOWAttributeSet, DefenseRating, COND_None, REPNOTIFY_Always); // Ajouté ici
 }
+
 
 // Called before the value of any attribute changes
 void UAOWAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
@@ -86,3 +87,9 @@ void UAOWAttributeSet::OnRep_AttackDamage(const FGameplayAttributeData& OldAttac
 {
     GAMEPLAYATTRIBUTE_REPNOTIFY(UAOWAttributeSet, AttackDamage, OldAttackDamage);
 }
+
+void UAOWAttributeSet::OnRep_DefenseRating(const FGameplayAttributeData& OldDefenseRating) const
+{
+    GAMEPLAYATTRIBUTE_REPNOTIFY(UAOWAttributeSet, DefenseRating, OldDefenseRating);
+}
+

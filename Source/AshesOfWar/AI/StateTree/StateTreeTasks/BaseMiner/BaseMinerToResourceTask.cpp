@@ -1,69 +1,90 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "BaseMinerToResourceTask.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
+#include "AshesOfWar/Units/Base/Miner/Miner.h"
 #include "Kismet/GameplayStatics.h"
 #include "StateTreeExecutionContext.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "AshesOfWar/Resources/Nodes/AResourceNode.h"
-
+#include "AshesOfWar/Buildings/Base/ABaseBuilding.h"
 
 UBaseMinerToResourceTask::UBaseMinerToResourceTask()
 	: UStateTreeTaskBlueprintBase(FObjectInitializer::Get())
 {
+	// Constructor body (empty for now)
 }
 
 void UBaseMinerToResourceTask::OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result)
 {
 	if (Result == EPathFollowingResult::Success)
 	{
-		// Move was successful, transit to collecting state
+		// Successfully reached the target - finish the task successfully
 		FinishTask(true);
 	}
 	else
 	{
-		// Move failed, handle the failure
+		// Failed to reach the target - fail the task
 		FinishTask(false);
-		UE_LOG(LogTemp, Warning, TEXT("Move to resource failed"));
+		UE_LOG(LogTemp, Warning, TEXT("BaseMinerToResourceTask: Failed to move to the target."));
 	}
 }
 
-void UBaseMinerToResourceTask::MoveToNearestResource()
+void UBaseMinerToResourceTask::MoveToCurrentTarget()
 {
-	if (AIController)
+	if (!AIController)
 	{
-		// find the nearest resource
-		TArray<AActor*> Resources;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), AAResourceNode::StaticClass(), Resources);
-		if (Resources.Num() > 0)
+		UE_LOG(LogTemp, Error, TEXT("BaseMinerToResourceTask: AIController is not valid."));
+		return;
+	}
+
+	// Try to cast the controlled pawn to a Miner
+	AMiner* ControlledMiner = Cast<AMiner>(AIController->GetPawn());
+	if (!ControlledMiner)
+	{
+		UE_LOG(LogTemp, Error, TEXT("BaseMinerToResourceTask: Controlled pawn is not a Miner."));
+		return;
+	}
+
+	// Determine the correct target based on the miner's current action
+	if (ControlledMiner->IsDepositing())
+	{
+		// If depositing, move to the current base
+		if (AActor* TargetBase = ControlledMiner->GetCurrentDepositTarget())
 		{
-			// move to the nearest resource
-			AIController->MoveToActor(Resources[0]);
+			AIController->MoveToActor(TargetBase);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("BaseMinerToResourceTask: No deposit target set."));
 		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("AIController is not initialized: BaseMinerToResourceTask"));
+		// Otherwise, move to the resource node
+		if (AActor* TargetNode = ControlledMiner->GetCurrentResourceTarget())
+		{
+			AIController->MoveToActor(TargetNode);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("BaseMinerToResourceTask: No resource target set."));
+		}
 	}
 }
 
-EStateTreeRunStatus UBaseMinerToResourceTask::EnterState(FStateTreeExecutionContext& Context,
-                                                         const FStateTreeTransitionResult& Transition)
+EStateTreeRunStatus UBaseMinerToResourceTask::EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition)
 {
-	// call onMoveCompleted when the move is completed
-	if (AIController)
+	// Validate the AIController reference
+	if (!AIController)
 	{
-		AIController->ReceiveMoveCompleted.AddUniqueDynamic(
-			this, &UBaseMinerToResourceTask::OnMoveCompleted);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("AIController is not initialized: BaseMinerToResourceTask"));
+		UE_LOG(LogTemp, Error, TEXT("BaseMinerToResourceTask: AIController is not assigned."));
 		return EStateTreeRunStatus::Failed;
 	}
-	
-	// find the nearest resource and move to it
-	MoveToNearestResource();
+
+	// Register the OnMoveCompleted delegate
+	AIController->ReceiveMoveCompleted.AddUniqueDynamic(this, &UBaseMinerToResourceTask::OnMoveCompleted);
+
+	// Start moving toward the appropriate target
+	MoveToCurrentTarget();
+
 	return Super::EnterState(Context, Transition);
 }

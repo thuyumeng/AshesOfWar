@@ -4,14 +4,19 @@
 #include "Blueprint/UserWidget.h"
 #include "WResourceBarWidget.generated.h"
 
+// Forward declaration
 class UTextBlock;
 
 /**
  * UWResourceBarWidget
  * 
- * Widget class responsible for displaying the player's current resources (Aetherium, Vitae, Umbra)
- * on the top of the screen during RTS gameplay. It is bound to a UMG Widget Blueprint containing
- * three UTextBlocks named: Txt_Aetherium, Txt_Vitae, and Txt_Umbra.
+ * Widget responsible for displaying the player's current resource counts
+ * (Aetherium, Vitae, Umbra) at the top of the RTS game screen.
+ * 
+ * This widget expects to be bound to three UMG TextBlocks named:
+ * - Txt_Aetherium
+ * - Txt_Vitae
+ * - Txt_Umbra
  */
 UCLASS()
 class ASHESOFWAR_API UWResourceBarWidget : public UUserWidget
@@ -20,25 +25,26 @@ class ASHESOFWAR_API UWResourceBarWidget : public UUserWidget
 
 public:
 	/**
-	 * Update the resource values displayed in the UI.
-	 * This method is called by the PlayerController every second via timer.
-	 * @param Aetherium The current amount of Aetherium the player owns
-	 * @param Vitae The current amount of Vitae the player owns
-	 * @param Umbra The current amount of Umbra the player owns
+	 * Updates the resource values displayed in the UI.
+	 * Typically called every second by the PlayerController via a timer.
+	 * 
+	 * @param Aetherium - The current Aetherium resource count.
+	 * @param Vitae - The current Vitae resource count.
+	 * @param Umbra - The current Umbra resource count.
 	 */
 	UFUNCTION(BlueprintCallable, Category = "UI")
 	void UpdateResources(int32 Aetherium, int32 Vitae, int32 Umbra);
 
 protected:
-	/** Text block displaying the Aetherium amount. Must be named Txt_Aetherium in the Blueprint. */
+	/** Text block displaying the amount of Aetherium. Must be bound in the UMG widget. */
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Txt_Aetherium;
 
-	/** Text block displaying the Vitae amount. Must be named Txt_Vitae in the Blueprint. */
+	/** Text block displaying the amount of Vitae. Must be bound in the UMG widget. */
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Txt_Vitae;
 
-	/** Text block displaying the Umbra amount. Must be named Txt_Umbra in the Blueprint. */
+	/** Text block displaying the amount of Umbra. Must be bound in the UMG widget. */
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Txt_Umbra;
 };

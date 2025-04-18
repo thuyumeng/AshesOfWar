@@ -12,67 +12,68 @@ UResourceComponent::UResourceComponent()
 	// Default values
 	bIsCollecting = false;
 	CarriedAmount = 0;
-	CarriedResourceType = EResourceType::Aetherium; // Default to Aetherium
+	CarriedResourceType = EResourceType::Aetherium; // Default resource type
 	CarriedMaxCapacity = 50;
 	CurrentResourceNode = nullptr;
 }
 
 void UResourceComponent::BeginCollection()
 {
-	// Validation : node invalide ou déjà en train de collecter
+	// Validation: invalid node or already collecting
 	if (!CurrentResourceNode || bIsCollecting)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UResourceComponent::BeginCollection - CurrentResourceNode is invalid or already collecting."));
 		return;
 	}
 
-	// Récupérer le type de ressource
+	// Get the resource type
 	CarriedResourceType = CurrentResourceNode->GetResourceType();
 
-	// Déterminer la quantité possible à extraire
-	const int32 Disponible = CurrentResourceNode->GetQteDisponible();
-	const int32 Taux = CurrentResourceNode->GetExtRate();
+	// Determine available extraction amount
+	const int32 Available = CurrentResourceNode->GetQteDisponible();
+	const int32 ExtractionRate = CurrentResourceNode->GetExtRate();
 
-	if (Disponible <= 0 || Taux <= 0)
+	if (Available <= 0 || ExtractionRate <= 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UResourceComponent::BeginCollection - Node épuisé ou extraction rate nul."));
+		UE_LOG(LogTemp, Warning, TEXT("UResourceComponent::BeginCollection - Node depleted or extraction rate is zero."));
 		return;
 	}
 
-	const int32 ExtractionMax = FMath::Min(CarriedMaxCapacity, Disponible);
-	const int32 QuantitéExtraite = FMath::Min(ExtractionMax, Taux);
+	const int32 MaxExtractable = FMath::Min(CarriedMaxCapacity, Available);
+	const int32 AmountExtracted = FMath::Min(MaxExtractable, ExtractionRate);
 
-	// Appliquer la quantité extraite
-	CarriedAmount = QuantitéExtraite;
-	CurrentResourceNode->SetQteDisponible(Disponible - QuantitéExtraite);
+	// Apply extracted quantity
+	CarriedAmount = AmountExtracted;
+	CurrentResourceNode->SetQteDisponible(Available - AmountExtracted);
 
-	// Marquer comme en collecte
+	// Mark as collecting
 	bIsCollecting = true;
 
-	UE_LOG(LogTemp, Log, TEXT("UResourceComponent::BeginCollection - Collecté %d de %s"), QuantitéExtraite, *UEnum::GetValueAsString(CarriedResourceType));
+	UE_LOG(LogTemp, Log, TEXT("UResourceComponent::BeginCollection - Collected %d of %s"), AmountExtracted, *UEnum::GetValueAsString(CarriedResourceType));
 }
-
 
 void UResourceComponent::StopCollection()
 {
 	if (!bIsCollecting)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UResourceComponent::StopCollection - Pas en cours de collecte."));
+		UE_LOG(LogTemp, Warning, TEXT("UResourceComponent::StopCollection - Not currently collecting."));
 		return;
 	}
 
 	bIsCollecting = false;
 	CurrentResourceNode = nullptr;
 
-	UE_LOG(LogTemp, Log, TEXT("UResourceComponent::StopCollection - Collecte arrêtée."));
+	UE_LOG(LogTemp, Log, TEXT("UResourceComponent::StopCollection - Collection stopped."));
 }
-
 
 APlayerState* UResourceComponent::GetPlayerState() const
 {
-	// Attempt to cast the owner to a pawn and return its PlayerState
+	// Try to cast the owner to a Pawn and get its PlayerState
 	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn) return nullptr;
+	if (!OwnerPawn)
+	{
+		return nullptr;
+	}
 
 	return OwnerPawn->GetPlayerState();
 }
@@ -80,19 +81,24 @@ APlayerState* UResourceComponent::GetPlayerState() const
 void UResourceComponent::DepositResources()
 {
 	APlayerState* Player = GetPlayerState();
-	if (!Player || CarriedAmount <= 0) return;
+	if (!Player || CarriedAmount <= 0)
+	{
+		return;
+	}
 
 	AARTSGameState* GameState = Cast<AARTSGameState>(UGameplayStatics::GetGameState(GetWorld()));
-	if (!GameState) return;
+	if (!GameState)
+	{
+		return;
+	}
 
-	// Ajouter la ressource au GameState
+	// Add the carried resource to the player's resource pool
 	GameState->AddResource(Player, CarriedResourceType, CarriedAmount);
 
-	// Reset du contenu transporté
+	// Reset carried contents
 	CarriedAmount = 0;
 	bIsCollecting = false;
 }
-
 
 void UResourceComponent::SetCurrentResourceNode(AAResourceNode* NewNode)
 {

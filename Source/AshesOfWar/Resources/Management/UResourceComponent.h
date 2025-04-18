@@ -5,7 +5,12 @@
 #include "AshesOfWar/Resources/ResourcesTypes/EResourceType.h"
 #include "UResourceComponent.generated.h"
 
+// Forward declaration
+class AAResourceNode;
+
 /**
+ * UResourceComponent
+ * 
  * Optional component that can be attached to units (typically workers)
  * to handle resource collection and deposit logic.
  */
@@ -14,46 +19,48 @@ class ASHESOFWAR_API UResourceComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
-public:	
+public:
 	// Constructor
 	UResourceComponent();
 
-	// Starts collecting from the current resource node
-	UFUNCTION(Category = "Resource")
+	/** Starts collecting resources from the currently assigned resource node. */
+	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void BeginCollection();
 
-	// Stops the collection process and clears current resource node
-	UFUNCTION(Category = "Resource")
+	/** Stops the collection process and clears the current resource node. */
+	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void StopCollection();
 
-	// Deposits the carried resources into a base/building (to be implemented)
-	UFUNCTION(Category = "Resource")
+	/** Deposits the carried resources into the player's stockpile (calls GameState logic). */
+	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void DepositResources();
 
-	// Returns the player state of the owner pawn
+	/** Returns the PlayerState of the owning pawn. */
 	APlayerState* GetPlayerState() const;
 
-	// Définit le node depuis lequel extraire
-	void SetCurrentResourceNode(class AAResourceNode* NewNode);
-	
+	/** Sets the current resource node to extract resources from. */
+	void SetCurrentResourceNode(AAResourceNode* NewNode);
+
+	/** Gets the current resource node assigned. */
 	AAResourceNode* GetCurrentResourceNode() const;
-	
+
+	/** Checks whether the unit is currently collecting resources. */
 	bool IsCollecting() const;
 
 private:
-	// Whether this unit is currently collecting
+	/** Whether this unit is actively collecting resources. */
 	bool bIsCollecting;
 
-	// Type of resource currently being carried
+	/** Type of resource currently being carried. */
 	EResourceType CarriedResourceType;
 
-	// Current amount of resource being carried
+	/** Current amount of resource being carried. */
 	int32 CarriedAmount;
 
-	// Maximum amount this unit can carry
+	/** Maximum carrying capacity of this unit. */
 	int32 CarriedMaxCapacity;
 
-	// Current node from which this unit is collecting resources
+	/** Current resource node being mined from. */
 	UPROPERTY()
-	class AAResourceNode* CurrentResourceNode;
+	AAResourceNode* CurrentResourceNode;
 };
