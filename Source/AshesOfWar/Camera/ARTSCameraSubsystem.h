@@ -37,27 +37,33 @@ public:
 	UCameraComponent* GetCameraComponent() const;
 
 private:
-	// The actual camera used in the world
+	// La caméra utilisée dans le monde
 	UPROPERTY()
 	UCameraComponent* CameraComponent;
 
-	// Spring arm component used for positioning and zooming the camera
+	// Spring arm qui supporte la caméra (pour le zoom et la hauteur)
 	UPROPERTY()
 	USpringArmComponent* SpringArmComponent;
 
-	// Reference to the player controller owning the camera
+	// Contrôleur joueur pour la caméra
 	UPROPERTY()
 	APlayerController* PlayerController;
 
-	// Camera behavior parameters
+	// Référence à l’acteur physique qui contient la caméra (ex: un AActor vide)
+	UPROPERTY()
+	AActor* CameraActor;
+
+	// Paramètres de la caméra
 	float CameraSpeed;
 	float ZoomSpeed;
 	float MinZoom;
 	float MaxZoom;
 
-	// Internal helper functions
-	void TryRetrievePlayerController(); // Called if controller is not available on Init
-	void ConfigureCamera();             // Creates and configures camera and spring arm
-	void MoveCamera(float DeltaTime);   // Handles WASD movement
-	void ZoomCamera(float AxisValue);   // Handles mouse wheel zoom
+	bool bHasLoggedCameraWarning = false;
+
+	// Fonctions internes
+	void TryRetrievePlayerController(); // Si le controller n’est pas dispo immédiatement
+	void ConfigureCamera();             // Crée les composants et les attache
+	void MoveCamera(float DeltaTime);   // Déplacement (WASD)
+	void ZoomCamera(float AxisValue);   // Zoom (roulette souris)
 };

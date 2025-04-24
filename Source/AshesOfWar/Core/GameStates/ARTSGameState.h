@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -19,25 +17,24 @@ class ASHESOFWAR_API AARTSGameState : public AGameState
 	GENERATED_BODY()
 
 public:
-	// Constructor
 	AARTSGameState();
 
-	// Initializes player resources when the game starts
 	virtual void BeginPlay() override;
 
-	// Stores resources for each player using their PlayerState as a key
+	// Resources per player
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resource")
 	TMap<APlayerState*, FPlayerResourceData> PlayerResources;
 
-	// Adds a specific amount of a resource to a player
+	// Ajoute une ressource au joueur
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void AddResource(APlayerState* Player, EResourceType ResourceType, int32 Amount);
 
-	// Tries to spend a specific amount of a resource; returns true if the player has enough
-	UFUNCTION(BlueprintCallable, Category = "Resource")
-	bool SpendResource(APlayerState* Player, EResourceType ResourceType, int32 Amount);
 
-	// Returns the amount of a given resource type that a player currently has
+	// Try to spend a resource from a player
 	UFUNCTION(BlueprintCallable, Category = "Resource")
-	int32 GetResourceAmount(APlayerState* Player, EResourceType ResourceType) const;
+	bool SpendResource(APlayerState* Player, EResourceType ResourceType, float Amount);
+
+	// Get resource amount
+	UFUNCTION(BlueprintCallable, Category = "Resource")
+	float GetResourceAmount(APlayerState* Player, EResourceType ResourceType) const;
 };

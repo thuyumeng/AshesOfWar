@@ -15,6 +15,9 @@ UBaseMinerToResourceTask::UBaseMinerToResourceTask()
 
 void UBaseMinerToResourceTask::OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Miner reached target. Result = %d (Success = %d)"), (int32)Result, (int32)EPathFollowingResult::Success);
+	
+
 	if (Result == EPathFollowingResult::Success)
 	{
 		// Successfully reached the target - finish the task successfully

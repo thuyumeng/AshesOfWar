@@ -86,6 +86,13 @@ public:
 	/** Moves the unit towards a specified destination. */
 	void MoveToLocation(const FVector& Destination);
 
+	// Associe manuellement le PlayerState à ce mineur
+	void SetOwningPlayerState(APlayerState* Player);
+
+	// Retourne le PlayerState associé à ce mineur
+	APlayerState* GetOwningPlayerState() const;
+
+
 protected:
 	// --- Resource Management ---
 
@@ -122,19 +129,24 @@ protected:
 	int32 CarriedCapacity = 50;
 
 	UPROPERTY(VisibleAnywhere, Category = "Resource")
-	int32 CarriedAmount = 0;
+	float CarriedAmount = 0.f;
 
 	UPROPERTY(VisibleAnywhere, Category = "Resource")
 	EResourceType CarriedResourceType = EResourceType::Aetherium;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Resource")
-	float MiningDistanceThreshold = 150.f;
+	float MiningDistanceThreshold = 200.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Resource")
-	float DepositDistanceThreshold = 150.f;
+	float DepositDistanceThreshold = 200.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Resource")
 	float CollectionRatePerSecond = 10.f; // Amount collected per second
+
+	// Référence vers le joueur propriétaire de cette unité
+	UPROPERTY()
+	APlayerState* OwningPlayerState = nullptr;
+
 
 	// --- Depositing ---
 

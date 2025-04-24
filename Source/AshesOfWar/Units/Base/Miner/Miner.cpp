@@ -8,11 +8,12 @@
 #include "EngineUtils.h"
 #include "AshesOfWar/Buildings/Base/EBuildingType.h"
 #include "GameFramework/PlayerState.h"
+#include "Kismet/GameplayStatics.h"
+#include "Navigation/PathFollowingComponent.h"
 
 AMiner::AMiner()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
 	ResourceComponent = CreateDefaultSubobject<UResourceComponent>(TEXT("ResourceComponent"));
 }
 
@@ -20,6 +21,22 @@ void AMiner::OnBeginPlay_Implementation()
 {
 	Super::OnBeginPlay_Implementation();
 
+	// ✅ Attribution manuelle du PlayerState si le mineur est placé directement dans la map
+	if (!OwningPlayerState)
+	{
+		APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0); // Joueur local (index 0)
+		if (PC && PC->PlayerState)
+		{
+			SetOwningPlayerState(PC->PlayerState);
+			UE_LOG(LogTemp, Warning, TEXT("🎯 PlayerState assigné automatiquement au mineur dans OnBeginPlay : %s"), *PC->PlayerState->GetName());
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("❌ Aucun PlayerController ou PlayerState trouvé dans OnBeginPlay"));
+		}
+	}
+
+	// ⚙️ Initialisation de l'IA (déjà présent)
 	AUnitAIController* AIController = GetAIController();
 	if (AIController)
 	{
@@ -31,6 +48,7 @@ void AMiner::OnBeginPlay_Implementation()
 		}
 	}
 }
+
 
 void AMiner::Tick(float DeltaTime)
 {
@@ -46,16 +64,12 @@ void AMiner::Tick(float DeltaTime)
 	}
 }
 
-// --- Mining Logic ---
-
 void AMiner::HandleMining(float DeltaTime)
 {
 	if (!ResourceComponent) return;
 
 	AAResourceNode* Resource = ResourceComponent->GetCurrentResourceNode();
-	if (!Resource) return;
-
-	if (Resource->GetQteDisponible() <= 0)
+	if (!Resource || Resource->GetQteDisponible() <= 0)
 	{
 		StopMining();
 		ResourceComponent->SetCurrentResourceNode(nullptr);
@@ -109,6 +123,8 @@ void AMiner::MoveToDeposit()
 
 void AMiner::DepositAtBase()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Depositing %.1f of %s"), CarriedAmount, *UEnum::GetValueAsString(CarriedResourceType));
+
 	if (CarriedAmount <= 0 || !CurrentDepositBaseTarget)
 	{
 		return;
@@ -117,16 +133,35 @@ void AMiner::DepositAtBase()
 	AARTSGameState* GameState = GetWorld()->GetGameState<AARTSGameState>();
 	if (GameState)
 	{
-		APlayerState* MyPlayerState = GetPlayerState<APlayerState>();
+		APlayerState* MyPlayerState = GetOwningPlayerState(); // ✅ Utilise ta fonction manuelle
 		if (MyPlayerState)
 		{
-			GameState->AddResource(MyPlayerState, CarriedResourceType, CarriedAmount);
+			GameState->AddResource(MyPlayerState, CarriedResourceType, static_cast<int32>(CarriedAmount));
+			UE_LOG(LogTemp, Warning, TEXT("✅ Ressource ajoutée à %s : +%d %s"), *MyPlayerState->GetName(), static_cast<int32>(CarriedAmount), *UEnum::GetValueAsString(CarriedResourceType));
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("❌ DepositAtBase: GetOwningPlayerState() a retourné nullptr"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("❌ DepositAtBase: Aucun GameState trouvé"));
+	}
+
+	if (ResourceComponent)
+	{
+		if (AAResourceNode* ResourceNode = ResourceComponent->GetCurrentResourceNode())
+		{
+			ResourceNode->ConsumeResource(CarriedAmount);
 		}
 	}
 
 	CarriedAmount = 0;
 	bIsDepositing = false;
 }
+
+
 
 void AMiner::FindNearestHQBase()
 {
@@ -155,18 +190,20 @@ void AMiner::FindNearestHQBase()
 	CurrentDepositBaseTarget = BestBase;
 }
 
-// --- Movement Logic ---
-
 void AMiner::MoveToLocation(const FVector& Destination)
 {
 	AUnitAIController* AIController = Cast<AUnitAIController>(GetController());
-	if (AIController)
-	{
-		AIController->MoveToLocation(Destination, 10.f);
-	}
-}
+	if (!AIController) return;
 
-// --- Resource Interface ---
+	const float MinerAcceptanceRadius = 120.f;
+
+	FAIMoveRequest MoveRequest;
+	MoveRequest.SetGoalLocation(Destination);
+	MoveRequest.SetAcceptanceRadius(MinerAcceptanceRadius);
+
+	FNavPathSharedPtr NavPath;
+	AIController->MoveTo(MoveRequest, &NavPath);
+}
 
 void AMiner::MineResource()
 {
@@ -205,8 +242,6 @@ UResourceComponent* AMiner::GetResourceComponent() const
 	return ResourceComponent;
 }
 
-// --- Construction Interface ---
-
 void AMiner::AddConstructionTarget(AActor* Building)
 {
 	if (Building && !ActiveConstructionTargets.Contains(Building))
@@ -228,8 +263,6 @@ bool AMiner::IsConstructing() const
 	return ActiveConstructionTargets.Num() > 0;
 }
 
-// --- Query Status ---
-
 bool AMiner::IsDepositing() const
 {
 	return bIsDepositing;
@@ -244,3 +277,16 @@ AActor* AMiner::GetCurrentResourceTarget() const
 {
 	return ResourceComponent ? Cast<AActor>(ResourceComponent->GetCurrentResourceNode()) : nullptr;
 }
+
+void AMiner::SetOwningPlayerState(APlayerState* Player)
+{
+	OwningPlayerState = Player;
+	UE_LOG(LogTemp, Warning, TEXT("✅ OwningPlayerState défini dans le mineur : %s"), Player ? *Player->GetName() : TEXT("nullptr"));
+}
+
+APlayerState* AMiner::GetOwningPlayerState() const
+{
+	return OwningPlayerState;
+}
+
+

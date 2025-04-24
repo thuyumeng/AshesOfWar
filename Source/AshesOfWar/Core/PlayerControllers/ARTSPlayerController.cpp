@@ -48,7 +48,6 @@ void ARTSPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 
-	// Bind left and right click actions
 	InputComponent->BindAction("LeftClick", IE_Pressed, this, &ARTSPlayerController::HandleLeftClick);
 	InputComponent->BindAction("LeftClick", IE_Released, this, &ARTSPlayerController::HandleLeftClickRelease);
 	InputComponent->BindAction("RightClick", IE_Pressed, this, &ARTSPlayerController::HandleRightClick);
@@ -60,11 +59,11 @@ void ARTSPlayerController::SetSelectedUnits(TArray<AUnit*>& NewUnits)
 	{
 		if (Unit)
 		{
-			Unit->SetSelectedUnit(false); // Deselect previously selected units
+			Unit->SetSelectedUnit(false);
 		}
 	}
 	SelectedUnits.Empty();
-	
+
 	for (AUnit* Unit : NewUnits)
 	{
 		Unit->SetSelectedUnit(true);
@@ -82,7 +81,6 @@ void ARTSPlayerController::HandleLeftClick()
 
 	AActor* ClickedActor = Hit.GetActor();
 
-	// If a unit was clicked, select it
 	TArray<AUnit*> CurSelectedUnits;
 	if (AUnit* Unit = Cast<AUnit>(ClickedActor))
 	{
@@ -90,11 +88,9 @@ void ARTSPlayerController::HandleLeftClick()
 	}
 	else
 	{
-		// Set beginning multiple selection to True
 		bIsMousePressed = true;
-		// Enable the tick to update the drawing of selection box
 		PrimaryActorTick.bCanEverTick = true;
-		// Record the start selection point
+
 		float mouseX, mouseY;
 		GetMousePosition(mouseX, mouseY);
 		SelectionStartPosition = FVector2D(mouseX, mouseY);
@@ -106,9 +102,11 @@ void ARTSPlayerController::HandleLeftClickRelease()
 {
 	bIsMousePressed = false;
 	PrimaryActorTick.bCanEverTick = false;
-	MainHUD->HideSelectionRect();
+	if (MainHUD)
+	{
+		MainHUD->HideSelectionRect();
+	}
 }
-
 
 void ARTSPlayerController::HandleRightClick()
 {
@@ -124,7 +122,6 @@ void ARTSPlayerController::HandleRightClick()
 	const FVector TargetLocation = Hit.ImpactPoint;
 	AActor* HitActor = Hit.GetActor();
 
-	// If right-clicked on a resource node and selected unit is a miner
 	for (AUnit* SelectedUnit : SelectedUnits)
 	{
 		if (AAResourceNode* Resource = Cast<AAResourceNode>(HitActor))
@@ -133,11 +130,14 @@ void ARTSPlayerController::HandleRightClick()
 			{
 				Miner->SetCurrentResourceNode(Resource);
 				Miner->MoveToLocation(TargetLocation);
+				Miner->MineResource();
+
+				UE_LOG(LogTemp, Warning, TEXT("[RTSController] Ordre de récolte donné à %s sur node %s"),
+					*Miner->GetName(), *Resource->GetName());
 			}
 		}
 		else
 		{
-			// Otherwise, move the selected unit to the target location
 			SelectedUnit->MoveToLocation(TargetLocation);
 		}
 	}
@@ -145,33 +145,33 @@ void ARTSPlayerController::HandleRightClick()
 
 void ARTSPlayerController::UpdateResourceUI()
 {
-	if (!ResourceBarInstance) return;
+	AARTSGameState* GameState = GetWorld() ? GetWorld()->GetGameState<AARTSGameState>() : nullptr;
+	if (!GameState || !ResourceBarInstance) return;
 
-	APlayerState* PS = PlayerState;
-	AARTSGameState* GS = Cast<AARTSGameState>(UGameplayStatics::GetGameState(GetWorld()));
-	if (!GS || !PS) return;
+	APlayerState* MyPlayerState = GetPlayerState<APlayerState>();
+	if (!MyPlayerState) return;
 
-	// Get current player resources
-	const int32 Aetherium = GS->GetResourceAmount(PS, EResourceType::Aetherium);
-	const int32 Vitae     = GS->GetResourceAmount(PS, EResourceType::Vitae);
-	const int32 Umbra     = GS->GetResourceAmount(PS, EResourceType::Umbra);
+	const int32 Aetherium = GameState->GetResourceAmount(MyPlayerState, EResourceType::Aetherium);
+	const int32 Vitae = GameState->GetResourceAmount(MyPlayerState, EResourceType::Vitae);
+	const int32 Umbra = GameState->GetResourceAmount(MyPlayerState, EResourceType::Umbra);
 
-	// Update the UI with latest values
+	// ✅ Met à jour l'affichage du widget
 	ResourceBarInstance->UpdateResources(Aetherium, Vitae, Umbra);
+
+	// ✅ Affiche les valeurs dans les logs pour debug
+	UE_LOG(LogTemp, Warning, TEXT("💰 Ressources - Aetherium: %d | Vitae: %d | Umbra: %d"), Aetherium, Vitae, Umbra);
 }
+
 
 void ARTSPlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	// update the drawing of selection box if mouse is pressed
-	if (bIsMousePressed)
+	if (bIsMousePressed && MainHUD)
 	{
 		float mouseX, mouseY;
 		GetMousePosition(mouseX, mouseY);
 		FVector2D SelectionSize = FVector2D(mouseX - SelectionStartPosition.X, mouseY - SelectionStartPosition.Y);
-		MainHUD->ShowSelectionRect(
-			SelectionStartPosition,
-			SelectionSize);
+		MainHUD->ShowSelectionRect(SelectionStartPosition, SelectionSize);
 	}
 }

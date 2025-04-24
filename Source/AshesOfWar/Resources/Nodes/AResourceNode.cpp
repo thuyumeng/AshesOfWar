@@ -40,3 +40,21 @@ void AAResourceNode::SetQteDisponible(int Amount)
 {
 	QteDisponible = Amount;
 }
+
+void AAResourceNode::ConsumeResource(float Amount)
+{
+	const int32 AmountInt = FMath::RoundToInt(Amount);
+	const int32 PreviousQte = QteDisponible;
+	QteDisponible = FMath::Clamp(QteDisponible - AmountInt, 0, QteDisponible);
+
+	FString OwnerName = GetOwner() ? GetOwner()->GetName() : TEXT("Aucun propriétaire");
+
+	UE_LOG(LogTemp, Warning, TEXT("🧪 ConsumeResource par %s - Avant: %d, Consommé: %d, Après: %d"),
+		*OwnerName,
+		PreviousQte,
+		AmountInt,
+		QteDisponible);
+
+	UE_LOG(LogTemp, Warning, TEXT("🪓 Consommé %d unités. Nouveau total: %d"),
+		AmountInt, QteDisponible);
+}

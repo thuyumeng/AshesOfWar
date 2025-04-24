@@ -42,6 +42,11 @@ protected:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+	/** Référence au widget d'affichage des ressources (créé à partir d’un Blueprint) */
+	UPROPERTY()
+	class UWResourceBarWidget* ResourceBarWidget;
+
+
 public:
 	// Set the currently selected units
 	void SetSelectedUnits(TArray<AUnit*>& NewUnits);

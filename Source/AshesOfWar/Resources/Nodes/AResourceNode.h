@@ -27,6 +27,9 @@ public:
 	// Set a new available quantity
 	void SetQteDisponible(int Amount);
 
+	// Consume a given amount from the available quantity
+	void ConsumeResource(float Amount);
+
 	// Returns the resource type (Aetherium, Vitae, Umbra)
 	EResourceType GetResourceType() const;
 
