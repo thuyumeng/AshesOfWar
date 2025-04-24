@@ -21,47 +21,36 @@ void AMiner::OnBeginPlay_Implementation()
 {
 	Super::OnBeginPlay_Implementation();
 
-	// ✅ Attribution manuelle du PlayerState si le mineur est placé directement dans la map
 	if (!OwningPlayerState)
 	{
-		APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0); // Joueur local (index 0)
+		APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 		if (PC && PC->PlayerState)
 		{
 			SetOwningPlayerState(PC->PlayerState);
-			UE_LOG(LogTemp, Warning, TEXT("🎯 PlayerState assigné automatiquement au mineur dans OnBeginPlay : %s"), *PC->PlayerState->GetName());
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("❌ Aucun PlayerController ou PlayerState trouvé dans OnBeginPlay"));
 		}
 	}
 
-	// ⚙️ Initialisation de l'IA (déjà présent)
-	AUnitAIController* AIController = GetAIController();
-	if (AIController)
+	if (AUnitAIController* AIController = GetAIController())
 	{
-		UUnitStateTreeAIComponent* StateTreeAIComponent = AIController->GetUnitStateTreeAIComponent();
-		if (StateTreeAIComponent && MinerStateTreeAsset)
+		if (UUnitStateTreeAIComponent* StateTreeAIComponent = AIController->GetUnitStateTreeAIComponent())
 		{
-			StateTreeAIComponent->SetStateTree(MinerStateTreeAsset);
-			StateTreeAIComponent->StartLogic();
+			if (MinerStateTreeAsset)
+			{
+				StateTreeAIComponent->SetStateTree(MinerStateTreeAsset);
+				StateTreeAIComponent->StartLogic();
+			}
 		}
 	}
 }
-
 
 void AMiner::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
 	if (bIsDepositing)
-	{
 		HandleDepositing(DeltaTime);
-	}
 	else
-	{
 		HandleMining(DeltaTime);
-	}
 }
 
 void AMiner::HandleMining(float DeltaTime)
@@ -80,7 +69,7 @@ void AMiner::HandleMining(float DeltaTime)
 	{
 		CarriedResourceType = Resource->GetResourceType();
 		CarriedAmount += CollectionRatePerSecond * DeltaTime;
-		CarriedAmount = FMath::Clamp(CarriedAmount, 0, CarriedCapacity);
+		CarriedAmount = FMath::Clamp(CarriedAmount, 0.f, static_cast<float>(CarriedCapacity));
 
 		if (CarriedAmount >= CarriedCapacity)
 		{
@@ -123,30 +112,22 @@ void AMiner::MoveToDeposit()
 
 void AMiner::DepositAtBase()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Depositing %.1f of %s"), CarriedAmount, *UEnum::GetValueAsString(CarriedResourceType));
+	if (CarriedAmount <= 0 || !CurrentDepositBaseTarget) return;
 
-	if (CarriedAmount <= 0 || !CurrentDepositBaseTarget)
+	if (AARTSGameState* GameState = GetWorld()->GetGameState<AARTSGameState>())
 	{
-		return;
-	}
-
-	AARTSGameState* GameState = GetWorld()->GetGameState<AARTSGameState>();
-	if (GameState)
-	{
-		APlayerState* MyPlayerState = GetOwningPlayerState(); // ✅ Utilise ta fonction manuelle
-		if (MyPlayerState)
+		if (APlayerState* MyPlayerState = GetOwningPlayerState())
 		{
 			GameState->AddResource(MyPlayerState, CarriedResourceType, static_cast<int32>(CarriedAmount));
-			UE_LOG(LogTemp, Warning, TEXT("✅ Ressource ajoutée à %s : +%d %s"), *MyPlayerState->GetName(), static_cast<int32>(CarriedAmount), *UEnum::GetValueAsString(CarriedResourceType));
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("❌ DepositAtBase: GetOwningPlayerState() a retourné nullptr"));
+			UE_LOG(LogTemp, Error, TEXT("❌ DepositAtBase: OwningPlayerState is null"));
 		}
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("❌ DepositAtBase: Aucun GameState trouvé"));
+		UE_LOG(LogTemp, Error, TEXT("❌ DepositAtBase: GameState not found"));
 	}
 
 	if (ResourceComponent)
@@ -161,48 +142,46 @@ void AMiner::DepositAtBase()
 	bIsDepositing = false;
 }
 
-
-
 void AMiner::FindNearestHQBase()
 {
-	AARTSGameState* GameState = GetWorld()->GetGameState<AARTSGameState>();
-	if (!GameState) return;
-
-	float MinDistance = TNumericLimits<float>::Max();
-	ABaseBuilding* BestBase = nullptr;
-
-	for (TActorIterator<ABaseBuilding> It(GetWorld()); It; ++It)
+	if (AARTSGameState* GameState = GetWorld()->GetGameState<AARTSGameState>())
 	{
-		ABaseBuilding* Base = *It;
-		if (!Base) continue;
+		float MinDistance = TNumericLimits<float>::Max();
+		ABaseBuilding* BestBase = nullptr;
 
-		if (Base->BuildingData.BuildingType == EBuildingType::HQ)
+		for (TActorIterator<ABaseBuilding> It(GetWorld()); It; ++It)
 		{
-			float Distance = FVector::Dist(GetActorLocation(), Base->GetActorLocation());
-			if (Distance < MinDistance)
+			ABaseBuilding* Base = *It;
+			if (!Base) continue;
+
+			if (Base->BuildingData.BuildingType == EBuildingType::HQ)
 			{
-				MinDistance = Distance;
-				BestBase = Base;
+				float Distance = FVector::Dist(GetActorLocation(), Base->GetActorLocation());
+				if (Distance < MinDistance)
+				{
+					MinDistance = Distance;
+					BestBase = Base;
+				}
 			}
 		}
-	}
 
-	CurrentDepositBaseTarget = BestBase;
+		CurrentDepositBaseTarget = BestBase;
+	}
 }
 
 void AMiner::MoveToLocation(const FVector& Destination)
 {
-	AUnitAIController* AIController = Cast<AUnitAIController>(GetController());
-	if (!AIController) return;
+	if (AUnitAIController* AIController = Cast<AUnitAIController>(GetController()))
+	{
+		const float MinerAcceptanceRadius = 120.f;
 
-	const float MinerAcceptanceRadius = 120.f;
+		FAIMoveRequest MoveRequest;
+		MoveRequest.SetGoalLocation(Destination);
+		MoveRequest.SetAcceptanceRadius(MinerAcceptanceRadius);
 
-	FAIMoveRequest MoveRequest;
-	MoveRequest.SetGoalLocation(Destination);
-	MoveRequest.SetAcceptanceRadius(MinerAcceptanceRadius);
-
-	FNavPathSharedPtr NavPath;
-	AIController->MoveTo(MoveRequest, &NavPath);
+		FNavPathSharedPtr NavPath;
+		AIController->MoveTo(MoveRequest, &NavPath);
+	}
 }
 
 void AMiner::MineResource()
@@ -281,12 +260,10 @@ AActor* AMiner::GetCurrentResourceTarget() const
 void AMiner::SetOwningPlayerState(APlayerState* Player)
 {
 	OwningPlayerState = Player;
-	UE_LOG(LogTemp, Warning, TEXT("✅ OwningPlayerState défini dans le mineur : %s"), Player ? *Player->GetName() : TEXT("nullptr"));
+	UE_LOG(LogTemp, Warning, TEXT("✅ OwningPlayerState défini : %s"), Player ? *Player->GetName() : TEXT("nullptr"));
 }
 
 APlayerState* AMiner::GetOwningPlayerState() const
 {
 	return OwningPlayerState;
 }
-
-

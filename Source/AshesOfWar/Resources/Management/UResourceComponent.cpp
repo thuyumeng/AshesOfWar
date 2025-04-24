@@ -1,139 +1,94 @@
 #include "UResourceComponent.h"
-#include "GameFramework/Actor.h"
-#include "Kismet/GameplayStatics.h"
 #include "AshesOfWar/Core/GameStates/ARTSGameState.h"
-#include "GameFramework/PlayerState.h"
 #include "AshesOfWar/Resources/Nodes/AResourceNode.h"
 #include "AshesOfWar/Units/Base/Miner/Miner.h"
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/Actor.h"
 #include "GameFramework/PlayerState.h"
+#include "GameFramework/Pawn.h"
 
-
+// --- Constructor ---
 UResourceComponent::UResourceComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 
-	// Default values
 	bIsCollecting = false;
 	CarriedAmount = 0;
-	CarriedResourceType = EResourceType::Aetherium; // Default resource type
 	CarriedMaxCapacity = 50;
+	CarriedResourceType = EResourceType::Aetherium;
 	CurrentResourceNode = nullptr;
 }
 
+// --- Start resource collection ---
 void UResourceComponent::BeginCollection()
 {
-	// Validation: invalid node or already collecting
-	UE_LOG(LogTemp, Warning, TEXT("BeginCollection triggered. Extracting from node %s"), *CurrentResourceNode->GetName());
-
 	if (!CurrentResourceNode || bIsCollecting)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UResourceComponent::BeginCollection - CurrentResourceNode is invalid or already collecting."));
 		return;
 	}
 
-	// Get the resource type
 	CarriedResourceType = CurrentResourceNode->GetResourceType();
 
-	// Determine available extraction amount
 	const int32 Available = CurrentResourceNode->GetQteDisponible();
 	const int32 ExtractionRate = CurrentResourceNode->GetExtRate();
 
 	if (Available <= 0 || ExtractionRate <= 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UResourceComponent::BeginCollection - Node depleted or extraction rate is zero."));
 		return;
 	}
 
 	const int32 MaxExtractable = FMath::Min(CarriedMaxCapacity, Available);
 	const int32 AmountExtracted = FMath::Min(MaxExtractable, ExtractionRate);
 
-	// Apply extracted quantity
 	CarriedAmount = AmountExtracted;
 	CurrentResourceNode->SetQteDisponible(Available - AmountExtracted);
-
-	// Mark as collecting
 	bIsCollecting = true;
-
-	UE_LOG(LogTemp, Log, TEXT("UResourceComponent::BeginCollection - Collected %d of %s"), AmountExtracted, *UEnum::GetValueAsString(CarriedResourceType));
 }
 
+// --- Stop resource collection ---
 void UResourceComponent::StopCollection()
 {
-	if (!bIsCollecting)
-	{
-		return;
-	}
+	if (!bIsCollecting) return;
 
 	bIsCollecting = false;
 	CurrentResourceNode = nullptr;
-
-	UE_LOG(LogTemp, Log, TEXT("UResourceComponent::StopCollection - Collection stopped."));
 }
 
-APlayerState* UResourceComponent::GetPlayerState() const
-{
-	// 🔍 Récupération via le mineur si possible
-	if (AMiner* Miner = Cast<AMiner>(GetOwner()))
-	{
-		APlayerState* DebugPlayerState = Miner->GetOwningPlayerState();
-
-		if (DebugPlayerState)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("🎯 GetPlayerState : via AMiner = %s"), *DebugPlayerState->GetName());
-			return DebugPlayerState;
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("❌ GetPlayerState : AMiner trouvé mais OwningPlayerState == nullptr"));
-		}
-	}
-
-	// 🧍 Sinon, fallback sur Pawn classique
-	APawn* OwnerPawn = Cast<APawn>(GetOwner());
-	if (!OwnerPawn)
-	{
-		UE_LOG(LogTemp, Error, TEXT("❌ GetPlayerState : Owner n'est pas un Pawn"));
-		return nullptr;
-	}
-
-	APlayerState* FallbackState = OwnerPawn->GetPlayerState();
-	if (FallbackState)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("📦 GetPlayerState fallback = %s"), *FallbackState->GetName());
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("❌ GetPlayerState fallback == nullptr"));
-	}
-
-	return FallbackState;
-}
-
-
-
-
+// --- Deposit carried resources ---
 void UResourceComponent::DepositResources()
 {
 	APlayerState* Player = GetPlayerState();
-	if (!Player || CarriedAmount <= 0)
-	{
-		return;
-	}
+	if (!Player || CarriedAmount <= 0) return;
 
 	AARTSGameState* GameState = Cast<AARTSGameState>(UGameplayStatics::GetGameState(GetWorld()));
-	if (!GameState)
-	{
-		return;
-	}
+	if (!GameState) return;
 
-	// Add the carried resource to the player's resource pool
 	GameState->AddResource(Player, CarriedResourceType, CarriedAmount);
 
-	// Reset carried contents
 	CarriedAmount = 0;
 	bIsCollecting = false;
 }
 
+// --- Determine owning player ---
+APlayerState* UResourceComponent::GetPlayerState() const
+{
+	if (const AMiner* Miner = Cast<AMiner>(GetOwner()))
+	{
+		if (APlayerState* State = Miner->GetOwningPlayerState())
+		{
+			return State;
+		}
+	}
+
+	if (const APawn* OwnerPawn = Cast<APawn>(GetOwner()))
+	{
+		return OwnerPawn->GetPlayerState();
+	}
+
+	return nullptr;
+}
+
+// --- Node Accessors ---
 void UResourceComponent::SetCurrentResourceNode(AAResourceNode* NewNode)
 {
 	CurrentResourceNode = NewNode;
