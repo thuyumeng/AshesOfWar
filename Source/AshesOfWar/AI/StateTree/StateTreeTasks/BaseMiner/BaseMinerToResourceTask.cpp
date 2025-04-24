@@ -1,11 +1,9 @@
 #include "BaseMinerToResourceTask.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
 #include "AshesOfWar/Units/Base/Miner/Miner.h"
-#include "Kismet/GameplayStatics.h"
 #include "StateTreeExecutionContext.h"
 #include "Navigation/PathFollowingComponent.h"
-#include "AshesOfWar/Resources/Nodes/AResourceNode.h"
-#include "AshesOfWar/Buildings/Base/ABaseBuilding.h"
+
 
 UBaseMinerToResourceTask::UBaseMinerToResourceTask()
 	: UStateTreeTaskBlueprintBase(FObjectInitializer::Get())
