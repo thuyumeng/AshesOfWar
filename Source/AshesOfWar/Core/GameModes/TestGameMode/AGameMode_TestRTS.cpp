@@ -3,29 +3,30 @@
 #include "AshesOfWar/Core/PlayerControllers/ARTSPlayerController.h"
 #include "AshesOfWar/Core/GameStates/ARTSGameState.h"
 
+// --- Constructor ---
 AAGameMode_TestRTS::AAGameMode_TestRTS()
 {
-	// Définir les classes par défaut
+	// Setup default RTS gameplay classes
 	PlayerControllerClass = ARTSPlayerController::StaticClass();
 	GameStateClass = AARTSGameState::StaticClass();
-	DefaultPawnClass = nullptr; // Caméra gérée par subsystem
+	DefaultPawnClass = nullptr; // RTS camera handled by subsystem
 }
 
+// --- BeginPlay: initialize camera subsystem ---
 void AAGameMode_TestRTS::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Activer manuellement le camera subsystem s’il existe
-	if (GetWorld())
+	if (UWorld* World = GetWorld())
 	{
-		if (UARTSCameraSubsystem* CamSubsystem = GetWorld()->GetSubsystem<UARTSCameraSubsystem>())
+		if (UARTSCameraSubsystem* CamSubsystem = World->GetSubsystem<UARTSCameraSubsystem>())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("✅ Subsystem Caméra trouvé et activé (via GameMode)"));
-			CamSubsystem->UpdateCamera(0.0f); // Appel initial facultatif
+			CamSubsystem->UpdateCamera(0.0f); // Optional: trigger initial camera update
+			UE_LOG(LogTemp, Log, TEXT("[GameMode] ✅ Camera subsystem initialized via GameMode."));
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("❌ Subsystem Caméra non trouvé"));
+			UE_LOG(LogTemp, Error, TEXT("[GameMode] ❌ Camera subsystem not found."));
 		}
 	}
 }

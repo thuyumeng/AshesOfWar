@@ -1,5 +1,6 @@
 #pragma once
 
+// --- Includes ---
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
 #include "AshesOfWar/Resources/ResourcesTypes/EResourceType.h"
@@ -7,9 +8,9 @@
 #include "ARTSGameState.generated.h"
 
 /**
- * RTS Game State class for managing player resource data.
- * This class keeps track of the resources owned by each player (human or AI)
- * and provides functions to add, spend, or query resource amounts.
+ * AARTSGameState
+ * 
+ * Custom GameState for RTS. Tracks player resources and provides methods to modify them.
  */
 UCLASS()
 class ASHESOFWAR_API AARTSGameState : public AGameState
@@ -17,24 +18,27 @@ class ASHESOFWAR_API AARTSGameState : public AGameState
 	GENERATED_BODY()
 
 public:
+	// --- Constructor ---
 	AARTSGameState();
 
+	// --- Lifecycle ---
 	virtual void BeginPlay() override;
 
-	// Resources per player
+	// --- Resource System ---
+
+	/** Holds the resource counts for each player */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resource")
 	TMap<APlayerState*, FPlayerResourceData> PlayerResources;
 
-	// Ajoute une ressource au joueur
+	/** Adds a specified resource amount to a player */
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void AddResource(APlayerState* Player, EResourceType ResourceType, int32 Amount);
 
-
-	// Try to spend a resource from a player
+	/** Attempts to deduct a resource amount from a player. Returns true if successful. */
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	bool SpendResource(APlayerState* Player, EResourceType ResourceType, float Amount);
 
-	// Get resource amount
+	/** Retrieves the current amount of a specific resource for a player */
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	float GetResourceAmount(APlayerState* Player, EResourceType ResourceType) const;
 };

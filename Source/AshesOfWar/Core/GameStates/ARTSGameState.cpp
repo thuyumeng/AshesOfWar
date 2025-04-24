@@ -1,11 +1,12 @@
 #include "ARTSGameState.h"
-#include "AshesOfWar/Resources/ResourcesTypes/FPlayerResourceData.h"
 #include "GameFramework/PlayerState.h"
 
+// --- Constructor ---
 AARTSGameState::AARTSGameState()
 {
 }
 
+// --- BeginPlay: Initializes player resources ---
 void AARTSGameState::BeginPlay()
 {
 	Super::BeginPlay();
@@ -24,19 +25,16 @@ void AARTSGameState::BeginPlay()
 	}
 }
 
+// --- Add resource to a player ---
 void AARTSGameState::AddResource(APlayerState* Player, EResourceType ResourceType, int32 Amount)
 {
 	if (!Player) return;
 
-	// 🔧 Auto-initialise les ressources si absentes
+	// Initialize resource entry if missing
 	if (!PlayerResources.Contains(Player))
 	{
 		PlayerResources.Add(Player, FPlayerResourceData());
-		UE_LOG(LogTemp, Warning, TEXT("⚠️ AddResource: Auto-init des ressources pour %s"), *Player->GetName());
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("✅ AddResource appelé pour %s : +%d de %s"),
-		*Player->GetName(), Amount, *UEnum::GetValueAsString(ResourceType));
 
 	switch (ResourceType)
 	{
@@ -54,6 +52,7 @@ void AARTSGameState::AddResource(APlayerState* Player, EResourceType ResourceTyp
 	}
 }
 
+// --- Spend resource if sufficient amount is available ---
 bool AARTSGameState::SpendResource(APlayerState* Player, EResourceType ResourceType, float Amount)
 {
 	if (!Player || !PlayerResources.Contains(Player)) return false;
@@ -82,9 +81,11 @@ bool AARTSGameState::SpendResource(APlayerState* Player, EResourceType ResourceT
 		}
 		break;
 	}
+
 	return false;
 }
 
+// --- Retrieve a player's current resource amount ---
 float AARTSGameState::GetResourceAmount(APlayerState* Player, EResourceType ResourceType) const
 {
 	if (!Player || !PlayerResources.Contains(Player)) return 0.f;

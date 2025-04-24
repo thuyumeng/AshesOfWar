@@ -5,17 +5,17 @@
 #include "AshesOfWar/UI/Widgets/WResourceBarWidget.h"
 #include "AshesOfWar/UI/HUD/MainHUD.h"
 #include "AshesOfWar/Core/GameStates/ARTSGameState.h"
-#include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
+#include "Blueprint/UserWidget.h"
 #include "GameFramework/PlayerState.h"
 
+// --- Constructor ---
 ARTSPlayerController::ARTSPlayerController()
 {
 	bEnableClickEvents = true;
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Crosshairs;
 
-	// Load the resource bar widget blueprint class
 	static ConstructorHelpers::FClassFinder<UWResourceBarWidget> ResourceBarBPClass(TEXT("/Game/Blueprints/UI/WBP_ResourceBar"));
 	if (ResourceBarBPClass.Succeeded())
 	{
@@ -23,11 +23,11 @@ ARTSPlayerController::ARTSPlayerController()
 	}
 }
 
+// --- BeginPlay ---
 void ARTSPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Only spawn the resource bar widget for the local player
 	if (IsLocalController() && ResourceBarClass)
 	{
 		ResourceBarInstance = CreateWidget<UWResourceBarWidget>(this, ResourceBarClass);
@@ -35,15 +35,14 @@ void ARTSPlayerController::BeginPlay()
 		{
 			ResourceBarInstance->AddToViewport();
 
-			// Set up a timer to refresh resource values every second
 			GetWorldTimerManager().SetTimer(ResourceUpdateTimerHandle, this, &ARTSPlayerController::UpdateResourceUI, 1.0f, true);
 		}
 	}
 
-	// Get the Hud for the marquee selection drawing
 	MainHUD = Cast<AMainHUD>(GetHUD());
 }
 
+// --- Input Setup ---
 void ARTSPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
@@ -53,6 +52,7 @@ void ARTSPlayerController::SetupInputComponent()
 	InputComponent->BindAction("RightClick", IE_Pressed, this, &ARTSPlayerController::HandleRightClick);
 }
 
+// --- Selection ---
 void ARTSPlayerController::SetSelectedUnits(TArray<AUnit*>& NewUnits)
 {
 	for (AUnit* Unit : SelectedUnits)
@@ -80,8 +80,8 @@ void ARTSPlayerController::HandleLeftClick()
 		return;
 
 	AActor* ClickedActor = Hit.GetActor();
-
 	TArray<AUnit*> CurSelectedUnits;
+
 	if (AUnit* Unit = Cast<AUnit>(ClickedActor))
 	{
 		CurSelectedUnits.Add(Unit);
@@ -95,6 +95,7 @@ void ARTSPlayerController::HandleLeftClick()
 		GetMousePosition(mouseX, mouseY);
 		SelectionStartPosition = FVector2D(mouseX, mouseY);
 	}
+
 	SetSelectedUnits(CurSelectedUnits);
 }
 
@@ -102,6 +103,7 @@ void ARTSPlayerController::HandleLeftClickRelease()
 {
 	bIsMousePressed = false;
 	PrimaryActorTick.bCanEverTick = false;
+
 	if (MainHUD)
 	{
 		MainHUD->HideSelectionRect();
@@ -110,14 +112,11 @@ void ARTSPlayerController::HandleLeftClickRelease()
 
 void ARTSPlayerController::HandleRightClick()
 {
-	if (SelectedUnits.Num() <= 0)
-		return;
+	if (SelectedUnits.Num() <= 0) return;
 
 	FHitResult Hit;
 	const bool bHit = GetHitResultUnderCursorByChannel(ETraceTypeQuery::TraceTypeQuery1, true, Hit);
-
-	if (!bHit || !Hit.bBlockingHit)
-		return;
+	if (!bHit || !Hit.bBlockingHit) return;
 
 	const FVector TargetLocation = Hit.ImpactPoint;
 	AActor* HitActor = Hit.GetActor();
@@ -132,8 +131,7 @@ void ARTSPlayerController::HandleRightClick()
 				Miner->MoveToLocation(TargetLocation);
 				Miner->MineResource();
 
-				UE_LOG(LogTemp, Warning, TEXT("[RTSController] Ordre de récolte donné à %s sur node %s"),
-					*Miner->GetName(), *Resource->GetName());
+				UE_LOG(LogTemp, Log, TEXT("[RTS] Miner %s assigned to resource node %s"), *Miner->GetName(), *Resource->GetName());
 			}
 		}
 		else
@@ -143,6 +141,7 @@ void ARTSPlayerController::HandleRightClick()
 	}
 }
 
+// --- Resource UI ---
 void ARTSPlayerController::UpdateResourceUI()
 {
 	AARTSGameState* GameState = GetWorld() ? GetWorld()->GetGameState<AARTSGameState>() : nullptr;
@@ -155,14 +154,13 @@ void ARTSPlayerController::UpdateResourceUI()
 	const int32 Vitae = GameState->GetResourceAmount(MyPlayerState, EResourceType::Vitae);
 	const int32 Umbra = GameState->GetResourceAmount(MyPlayerState, EResourceType::Umbra);
 
-	// ✅ Met à jour l'affichage du widget
 	ResourceBarInstance->UpdateResources(Aetherium, Vitae, Umbra);
 
-	// ✅ Affiche les valeurs dans les logs pour debug
-	UE_LOG(LogTemp, Warning, TEXT("💰 Ressources - Aetherium: %d | Vitae: %d | Umbra: %d"), Aetherium, Vitae, Umbra);
+	// Keep this for active debug – remove or demote in final release
+	UE_LOG(LogTemp, Log, TEXT("[Resources] Aetherium: %d | Vitae: %d | Umbra: %d"), Aetherium, Vitae, Umbra);
 }
 
-
+// --- Tick for selection marquee ---
 void ARTSPlayerController::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);

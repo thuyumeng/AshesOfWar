@@ -6,7 +6,7 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 
-// Constructor: initialise les valeurs par défaut
+// --- Constructor ---
 UARTSCameraSubsystem::UARTSCameraSubsystem()
 	: CameraComponent(nullptr),
 	  SpringArmComponent(nullptr),
@@ -15,11 +15,12 @@ UARTSCameraSubsystem::UARTSCameraSubsystem()
 	  CameraSpeed(2000.0f),
 	  ZoomSpeed(100.0f),
 	  MinZoom(500.0f),
-	  MaxZoom(3000.0f)
+	  MaxZoom(3000.0f),
+	  bHasLoggedCameraWarning(false)
 {
 }
 
-// Initialisation au lancement du monde
+// --- Initialization ---
 void UARTSCameraSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
 	Super::Initialize(Collection);
@@ -27,14 +28,14 @@ void UARTSCameraSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	UWorld* World = GetWorld();
 	if (!World)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to retrieve World in Subsystem"));
+		UE_LOG(LogTemp, Error, TEXT("[CameraSubsystem] Failed to retrieve world."));
 		return;
 	}
 
 	PlayerController = World->GetFirstPlayerController();
 	if (!PlayerController)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("PlayerController not found, retrying after delay..."));
+		UE_LOG(LogTemp, Warning, TEXT("[CameraSubsystem] PlayerController not found. Retrying..."));
 		FTimerHandle TimerHandle;
 		World->GetTimerManager().SetTimer(TimerHandle, this, &UARTSCameraSubsystem::TryRetrievePlayerController, 1.0f, false);
 		return;
@@ -43,50 +44,47 @@ void UARTSCameraSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	ConfigureCamera();
 }
 
-// Retente de récupérer le contrôleur joueur
 void UARTSCameraSubsystem::TryRetrievePlayerController()
 {
-	UWorld* World = GetWorld();
-	if (!World) return;
-
-	PlayerController = World->GetFirstPlayerController();
-	if (!PlayerController)
+	if (UWorld* World = GetWorld())
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to retrieve PlayerController after delay."));
-		return;
+		PlayerController = World->GetFirstPlayerController();
+		if (PlayerController)
+		{
+			ConfigureCamera();
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("[CameraSubsystem] Failed to retrieve PlayerController on retry."));
+		}
 	}
-
-	ConfigureCamera();
 }
 
-// Configuration de la caméra et attachement à un acteur dédié
+// --- Camera Setup ---
 void UARTSCameraSubsystem::ConfigureCamera()
 {
 	if (!PlayerController)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Cannot configure camera: PlayerController missing."));
+		UE_LOG(LogTemp, Error, TEXT("[CameraSubsystem] Cannot configure camera: PlayerController missing."));
 		return;
 	}
 
-	//*Spawne un acteur vide pour supporter la caméra (si non déjà là)*//
 	CameraActor = GetWorld()->SpawnActor<AActor>();
 	if (!CameraActor)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to spawn CameraActor."));
+		UE_LOG(LogTemp, Error, TEXT("[CameraSubsystem] Failed to spawn CameraActor."));
 		return;
 	}
 
-	//*Crée le SpringArm et la Camera et les attache au CameraActor*//
 	SpringArmComponent = NewObject<USpringArmComponent>(CameraActor);
 	CameraComponent = NewObject<UCameraComponent>(CameraActor);
 
 	if (!SpringArmComponent || !CameraComponent)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Failed to create camera components"));
+		UE_LOG(LogTemp, Error, TEXT("[CameraSubsystem] Failed to create camera components."));
 		return;
 	}
 
-	//*Assure que l’acteur a un RootComponent*//
 	if (!CameraActor->GetRootComponent())
 	{
 		USceneComponent* Root = NewObject<USceneComponent>(CameraActor);
@@ -105,21 +103,20 @@ void UARTSCameraSubsystem::ConfigureCamera()
 	SpringArmComponent->SetRelativeRotation(FRotator(-60.0f, 0.0f, 0.0f));
 
 	PlayerController->SetViewTargetWithBlend(CameraActor);
-
 	PlayerController->SetInputMode(FInputModeGameOnly());
 	PlayerController->bEnableClickEvents = true;
 	PlayerController->bEnableMouseOverEvents = true;
 	PlayerController->bShowMouseCursor = true;
 }
 
-// Mise à jour de la caméra
+// --- Camera Update ---
 void UARTSCameraSubsystem::UpdateCamera(float DeltaTime)
 {
 	if (!CameraComponent)
 	{
 		if (!bHasLoggedCameraWarning)
 		{
-			UE_LOG(LogTemp, Error, TEXT("❌ CameraComponent not initialized!"));
+			UE_LOG(LogTemp, Error, TEXT("[CameraSubsystem] ❌ CameraComponent not initialized."));
 			bHasLoggedCameraWarning = true;
 		}
 		return;
@@ -134,14 +131,9 @@ void UARTSCameraSubsystem::UpdateCamera(float DeltaTime)
 	}
 }
 
-// Mouvement WASD
 void UARTSCameraSubsystem::MoveCamera(float DeltaTime)
 {
-	if (!PlayerController || !CameraComponent)
-	{
-		UE_LOG(LogTemp, Error, TEXT("PlayerController or CameraComponent unavailable for camera movement"));
-		return;
-	}
+	if (!PlayerController || !CameraComponent) return;
 
 	FVector MoveDirection = FVector::ZeroVector;
 
@@ -160,7 +152,6 @@ void UARTSCameraSubsystem::MoveCamera(float DeltaTime)
 	}
 }
 
-// Zoom
 void UARTSCameraSubsystem::ZoomCamera(float AxisValue)
 {
 	if (FMath::Abs(AxisValue) > KINDA_SMALL_NUMBER)
@@ -171,13 +162,7 @@ void UARTSCameraSubsystem::ZoomCamera(float AxisValue)
 	}
 }
 
-// Getter pour la caméra
-UCameraComponent* UARTSCameraSubsystem::GetCameraComponent() const
-{
-	return CameraComponent;
-}
-
-// Nettoyage
+// --- Deinitialization ---
 void UARTSCameraSubsystem::Deinitialize()
 {
 	if (CameraComponent)

@@ -1,18 +1,21 @@
 #pragma once
 
+// --- Includes ---
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "ARTSPlayerController.generated.h"
 
+// --- Forward Declarations ---
 class AUnit;
 class UWResourceBarWidget;
 class AMainHUD;
 
 /**
  * ARTSPlayerController
- * Custom PlayerController for RTS gameplay.
- * Handles unit selection and basic click-based interactions.
- * Also manages displaying and updating the top-screen resource UI.
+ * 
+ * Custom RTS-style PlayerController:
+ * - Handles selection, input and HUD updates
+ * - Manages the top-bar resource UI
  */
 UCLASS()
 class ASHESOFWAR_API ARTSPlayerController : public APlayerController
@@ -20,62 +23,46 @@ class ASHESOFWAR_API ARTSPlayerController : public APlayerController
 	GENERATED_BODY()
 
 public:
-	// Constructor
+	// --- Constructor ---
 	ARTSPlayerController();
 
 protected:
-	// Called when the game starts
+	// --- Lifecycle Hooks ---
 	virtual void BeginPlay() override;
-
-	void HandleLeftClickRelease();
-	// Binds mouse click inputs
 	virtual void SetupInputComponent() override;
-
-	// Handles left click (unit selection)
-	void HandleLeftClick();
-
-	// Handles right click (issue move or interact order)
-	void HandleRightClick();
-
-	// Updates the resource UI (Aetherium, Vitae, Umbra)
-	void UpdateResourceUI();
-
 	virtual void Tick(float DeltaSeconds) override;
 
-	/** Référence au widget d'affichage des ressources (créé à partir d’un Blueprint) */
-	UPROPERTY()
-	class UWResourceBarWidget* ResourceBarWidget;
+	// --- Input Handling ---
+	void HandleLeftClick();
+	void HandleLeftClickRelease();
+	void HandleRightClick();
 
+	// --- HUD Update ---
+	void UpdateResourceUI();
 
 public:
-	// Set the currently selected units
+	/** Sets the list of currently selected units */
 	void SetSelectedUnits(TArray<AUnit*>& NewUnits);
 
 private:
-	// The currently selected units (if any)
+	// --- Selection ---
 	UPROPERTY()
 	TArray<TObjectPtr<AUnit>> SelectedUnits;
 
-	// The multiple selection box property
 	UPROPERTY()
 	bool bIsMousePressed{false};
 
-	// --- UI: Resource Bar --- //
+	FVector2D SelectionStartPosition;
 
-	// Widget class reference to instantiate the resource bar
+	// --- HUD / UI ---
 	UPROPERTY(EditDefaultsOnly, Category = "UI")
 	TSubclassOf<UWResourceBarWidget> ResourceBarClass;
 
-	// Widget that used for display the rect area of marquee selection
-	UPROPERTY(BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<AMainHUD> MainHUD;
-	FVector2D SelectionStartPosition;
-	
-	
-	// Widget instance shown in-game
 	UPROPERTY()
 	UWResourceBarWidget* ResourceBarInstance;
 
-	// Timer to update the resource UI regularly
+	UPROPERTY(BlueprintReadOnly, Category = "UI", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<AMainHUD> MainHUD;
+
 	FTimerHandle ResourceUpdateTimerHandle;
 };

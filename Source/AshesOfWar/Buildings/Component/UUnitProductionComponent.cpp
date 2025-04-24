@@ -1,20 +1,21 @@
 #include "UUnitProductionComponent.h"
 #include "AshesOfWar/Units/Base/Unit.h"
 #include "AshesOfWar/Units/Base/Miner/Miner.h"
-#include "Engine/World.h"
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/Actor.h"
+#include "Engine/World.h"
 
+// --- Constructor ---
 UUnitProductionComponent::UUnitProductionComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// Initialize defaults
 	bIsProducing = false;
-	TimeRemaining = 0.0f;
-	TotalProductionTime = 0.0f;
+	TimeRemaining = 0.f;
+	TotalProductionTime = 0.f;
 }
 
+// --- Lifecycle Hooks ---
 void UUnitProductionComponent::BeginPlay()
 {
 	Super::BeginPlay();
@@ -24,20 +25,16 @@ void UUnitProductionComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!bIsProducing)
-	{
-		return;
-	}
+	if (!bIsProducing) return;
 
 	TimeRemaining -= DeltaTime;
 
-	if (TimeRemaining <= 0.0f && CurrentUnitClass)
+	if (TimeRemaining <= 0.f && CurrentUnitClass)
 	{
 		UWorld* World = GetWorld();
 		if (World)
 		{
-			// 📍 Position de spawn devant le bâtiment
-			const FVector SpawnLocation = GetOwner()->GetActorLocation() + GetOwner()->GetActorForwardVector() * 300.0f;
+			const FVector SpawnLocation = GetOwner()->GetActorLocation() + GetOwner()->GetActorForwardVector() * 300.f;
 			const FRotator SpawnRotation = FRotator::ZeroRotator;
 
 			FActorSpawnParameters SpawnParams;
@@ -48,35 +45,26 @@ void UUnitProductionComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 
 			if (NewUnit)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("🎉 Nouvelle unité spawnée : %s"), *NewUnit->GetName());
-
 				if (AMiner* Miner = Cast<AMiner>(NewUnit))
 				{
 					APlayerState* OwnerState = nullptr;
 
-					// 🔍 Essai 1 : depuis le Pawn propriétaire
 					if (APawn* OwnerPawn = Cast<APawn>(GetOwner()))
 					{
 						OwnerState = OwnerPawn->GetPlayerState();
-						UE_LOG(LogTemp, Warning, TEXT("👤 PlayerState via OwnerPawn : %s"), OwnerState ? *OwnerState->GetName() : TEXT("nullptr"));
 					}
-
-					// 🔍 Essai 2 : via InstigatorController (en cas de bâtiment non possédé directement)
-					if (!OwnerState && GetOwner()->GetInstigatorController())
+					else if (GetOwner()->GetInstigatorController())
 					{
 						OwnerState = GetOwner()->GetInstigatorController()->PlayerState;
-						UE_LOG(LogTemp, Warning, TEXT("👤 PlayerState via InstigatorController : %s"), OwnerState ? *OwnerState->GetName() : TEXT("nullptr"));
 					}
 
-					// ✅ Attribution
 					if (OwnerState)
 					{
 						Miner->SetOwningPlayerState(OwnerState);
-						UE_LOG(LogTemp, Warning, TEXT("✅ PlayerState assigné au mineur : %s"), *OwnerState->GetName());
 					}
 					else
 					{
-						UE_LOG(LogTemp, Error, TEXT("❌ Aucun PlayerState trouvé pour assignation au mineur"));
+						UE_LOG(LogTemp, Error, TEXT("[Production] Failed to assign PlayerState to unit."));
 					}
 				}
 
@@ -88,45 +76,37 @@ void UUnitProductionComponent::TickComponent(float DeltaTime, ELevelTick TickTyp
 			}
 		}
 
-		// Réinitialisation de la production
+		// Reset production state
 		bIsProducing = false;
-		TimeRemaining = 0.0f;
-		TotalProductionTime = 0.0f;
+		TimeRemaining = 0.f;
+		TotalProductionTime = 0.f;
 		CurrentUnitClass = nullptr;
 	}
 }
 
-
-
+// --- Production Control ---
 void UUnitProductionComponent::StartProduction(TSubclassOf<AUnit> UnitClass)
 {
-	if (!UnitClass || bIsProducing)
-	{
-		return;
-	}
+	if (!UnitClass || bIsProducing) return;
 
 	CurrentUnitClass = UnitClass;
-
-	// TODO: Later, dynamically adjust production time based on unit metadata
-	TotalProductionTime = 5.0f; // Temporary: hardcoded for now
+	TotalProductionTime = 5.0f; // Temporary static value
 	TimeRemaining = TotalProductionTime;
-
 	bIsProducing = true;
 
-	UE_LOG(LogTemp, Log, TEXT("[Production] Started production: %s (%.1f seconds)"), *UnitClass->GetName(), TotalProductionTime);
+	UE_LOG(LogTemp, Log, TEXT("[Production] Started: %s (%.1fs)"), *UnitClass->GetName(), TotalProductionTime);
 }
 
 void UUnitProductionComponent::CancelProduction()
 {
-	if (bIsProducing)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[Production] Production canceled."));
+	if (!bIsProducing) return;
 
-		bIsProducing = false;
-		TimeRemaining = 0.0f;
-		TotalProductionTime = 0.0f;
-		CurrentUnitClass = nullptr;
-	}
+	bIsProducing = false;
+	TimeRemaining = 0.f;
+	TotalProductionTime = 0.f;
+	CurrentUnitClass = nullptr;
+
+	UE_LOG(LogTemp, Warning, TEXT("[Production] Production canceled."));
 }
 
 bool UUnitProductionComponent::IsProducing() const
