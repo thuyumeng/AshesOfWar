@@ -7,7 +7,7 @@
 #include "GameFramework/PlayerState.h"
 #include "GameFramework/Pawn.h"
 
-// --- Constructor ---
+// -------------------- Constructor --------------------
 UResourceComponent::UResourceComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
@@ -19,38 +19,21 @@ UResourceComponent::UResourceComponent()
 	CurrentResourceNode = nullptr;
 }
 
-// --- Start resource collection ---
+// -------------------- Collection --------------------
 void UResourceComponent::BeginCollection()
 {
-	if (!CurrentResourceNode || bIsCollecting)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("⛔ Impossible de commencer la collecte : node invalide ou déjà en cours."));
-		return;
-	}
+	if (!CurrentResourceNode) return;
 
 	CarriedResourceType = CurrentResourceNode->GetResourceType();
 
 	const int32 Available = CurrentResourceNode->GetQteDisponible();
 	const int32 ExtractionRate = CurrentResourceNode->GetExtRate();
 
-	if (Available <= 0 || ExtractionRate <= 0)
-	{
-		UE_LOG(LogTemp, Error, TEXT("❌ Node vide ou taux d'extraction invalide. Minage annulé."));
-		return;
-	}
+	if (Available <= 0 || ExtractionRate <= 0) return;
 
-	// Activation seulement, pas d'extraction ici
 	bIsCollecting = true;
-
-	// Log unique à l’init
-	UE_LOG(LogTemp, Warning, TEXT("[⛏️ Collection Init] Début du minage | Node: %d | Taux: %d/sec | Type: %s"),
-		Available,
-		ExtractionRate,
-		*UEnum::GetValueAsString(CarriedResourceType));
 }
 
-
-// --- Stop resource collection ---
 void UResourceComponent::StopCollection()
 {
 	if (!bIsCollecting) return;
@@ -59,30 +42,27 @@ void UResourceComponent::StopCollection()
 	CurrentResourceNode = nullptr;
 }
 
-// --- Deposit carried resources ---
+// -------------------- Deposit --------------------
 void UResourceComponent::DepositResources()
 {
 	APlayerState* Player = GetPlayerState();
 	if (!Player || CarriedAmount <= 0) return;
 
-	AARTSGameState* GameState = Cast<AARTSGameState>(UGameplayStatics::GetGameState(GetWorld()));
-	if (!GameState) return;
-
-	GameState->AddResource(Player, CarriedResourceType, CarriedAmount);
+	if (AARTSGameState* GameState = Cast<AARTSGameState>(UGameplayStatics::GetGameState(GetWorld())))
+	{
+		GameState->AddResource(Player, CarriedResourceType, CarriedAmount);
+	}
 
 	CarriedAmount = 0;
 	bIsCollecting = false;
 }
 
-// --- Determine owning player ---
+// -------------------- Owner Resolution --------------------
 APlayerState* UResourceComponent::GetPlayerState() const
 {
 	if (const AMiner* Miner = Cast<AMiner>(GetOwner()))
 	{
-		if (APlayerState* State = Miner->GetOwningPlayerState())
-		{
-			return State;
-		}
+		return Miner->GetOwningPlayerState();
 	}
 
 	if (const APawn* OwnerPawn = Cast<APawn>(GetOwner()))
@@ -93,7 +73,7 @@ APlayerState* UResourceComponent::GetPlayerState() const
 	return nullptr;
 }
 
-// --- Node Accessors ---
+// -------------------- Node Access --------------------
 void UResourceComponent::SetCurrentResourceNode(AAResourceNode* NewNode)
 {
 	CurrentResourceNode = NewNode;

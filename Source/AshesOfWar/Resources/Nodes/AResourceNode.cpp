@@ -45,8 +45,7 @@ void AAResourceNode::SetQteDisponible(int Amount)
 // --- Consume Resource ---
 void AAResourceNode::ConsumeResource(float Amount)
 {
-
-	UE_LOG(LogTemp, Error, TEXT("❗ ConsumeResource appelé: %f"), Amount);
+	
 	const int32 AmountInt = FMath::RoundToInt(Amount);
 	const int32 PreviousQte = QteDisponible;
 	QteDisponible = FMath::Clamp(QteDisponible - AmountInt, 0, QteDisponible);
@@ -57,3 +56,5 @@ void AAResourceNode::ConsumeResource(float Amount)
 		*OwnerName, AmountInt, QteDisponible, PreviousQte);
 #endif
 }
+
+
