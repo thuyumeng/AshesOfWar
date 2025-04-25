@@ -1,59 +1,57 @@
 #pragma once
 
+// --- Includes ---
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "AshesOfWar/Resources/ResourcesTypes/EResourceType.h"
 #include "AResourceNode.generated.h"
 
+// --- Forward Declarations ---
+class UStaticMeshComponent;
+class USphereComponent;
+
 /**
- * Base class for resource nodes (Aetherium, Vitae, Umbra).
- * These represent physical resource sources that can be harvested by workers.
+ * AAResourceNode
+ * 
+ * Base class for all resource nodes in the RTS (Aetherium, Vitae, Umbra).
+ * These represent static resources that can be harvested by units.
  */
 UCLASS()
 class ASHESOFWAR_API AAResourceNode : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
-	// Constructor
+
+public:
+	// --- Constructor ---
 	AAResourceNode();
 
-	// Get the current available quantity
+	// --- Resource Logic ---
 	int GetQteDisponible();
-
-	// Get the extraction rate
 	int GetExtRate();
-
-	// Set a new available quantity
 	void SetQteDisponible(int Amount);
-
-	// Returns the resource type (Aetherium, Vitae, Umbra)
+	void ConsumeResource(float Amount);
 	EResourceType GetResourceType() const;
 
 protected:
-
-	// Static mesh for the visual appearance of the resource node
+	// --- Components ---
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Resource")
 	UStaticMeshComponent* ResourceMesh;
 
-	// Collision zone for detecting nearby worker units
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Resource")
-	class USphereComponent* CollectionRadius;
+	USphereComponent* CollectionRadius;
 
-	// The type of resource this node provides
+	// --- Properties ---
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resource")
 	EResourceType ResourceType;
 
-	// Current available quantity of this resource
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resource")
 	int32 QteDisponible;
 
-	// How much can be extracted at once (or per second depending on mechanic)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resource")
 	int32 ExtractionRate;
 };
 
-// Inline getter for the resource type
+// --- Inline Accessor ---
 inline EResourceType AAResourceNode::GetResourceType() const
 {
 	return ResourceType;

@@ -1,17 +1,16 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #include "ARTSGameState.h"
+#include "GameFramework/PlayerState.h"
 
+// --- Constructor ---
 AARTSGameState::AARTSGameState()
 {
-	// Constructor logic (if needed)
 }
 
+// --- BeginPlay: Initializes player resources ---
 void AARTSGameState::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Loop through all players and assign them starting resources
 	for (APlayerState* CurrentPlayer : PlayerArray)
 	{
 		if (!PlayerResources.Contains(CurrentPlayer))
@@ -26,11 +25,17 @@ void AARTSGameState::BeginPlay()
 	}
 }
 
+// --- Add resource to a player ---
 void AARTSGameState::AddResource(APlayerState* Player, EResourceType ResourceType, int32 Amount)
 {
-	if (!Player || !PlayerResources.Contains(Player)) return;
+	if (!Player) return;
 
-	// Add the amount to the appropriate resource field
+	// Initialize resource entry if missing
+	if (!PlayerResources.Contains(Player))
+	{
+		PlayerResources.Add(Player, FPlayerResourceData());
+	}
+
 	switch (ResourceType)
 	{
 	case EResourceType::Aetherium:
@@ -47,11 +52,11 @@ void AARTSGameState::AddResource(APlayerState* Player, EResourceType ResourceTyp
 	}
 }
 
-bool AARTSGameState::SpendResource(APlayerState* Player, EResourceType ResourceType, int32 Amount)
+// --- Spend resource if sufficient amount is available ---
+bool AARTSGameState::SpendResource(APlayerState* Player, EResourceType ResourceType, float Amount)
 {
 	if (!Player || !PlayerResources.Contains(Player)) return false;
 
-	// Subtract the amount only if the player has enough of that resource
 	switch (ResourceType)
 	{
 	case EResourceType::Aetherium:
@@ -61,7 +66,6 @@ bool AARTSGameState::SpendResource(APlayerState* Player, EResourceType ResourceT
 			return true;
 		}
 		break;
-
 	case EResourceType::Vitae:
 		if (PlayerResources[Player].Vitae >= Amount)
 		{
@@ -69,7 +73,6 @@ bool AARTSGameState::SpendResource(APlayerState* Player, EResourceType ResourceT
 			return true;
 		}
 		break;
-
 	case EResourceType::Umbra:
 		if (PlayerResources[Player].Umbra >= Amount)
 		{
@@ -82,11 +85,11 @@ bool AARTSGameState::SpendResource(APlayerState* Player, EResourceType ResourceT
 	return false;
 }
 
-int32 AARTSGameState::GetResourceAmount(APlayerState* Player, EResourceType ResourceType) const
+// --- Retrieve a player's current resource amount ---
+float AARTSGameState::GetResourceAmount(APlayerState* Player, EResourceType ResourceType) const
 {
-	if (!Player || !PlayerResources.Contains(Player)) return 0;
+	if (!Player || !PlayerResources.Contains(Player)) return 0.f;
 
-	// Return the value of the requested resource
 	switch (ResourceType)
 	{
 	case EResourceType::Aetherium:
@@ -96,6 +99,6 @@ int32 AARTSGameState::GetResourceAmount(APlayerState* Player, EResourceType Reso
 	case EResourceType::Umbra:
 		return PlayerResources[Player].Umbra;
 	default:
-		return 0;
+		return 0.f;
 	}
 }

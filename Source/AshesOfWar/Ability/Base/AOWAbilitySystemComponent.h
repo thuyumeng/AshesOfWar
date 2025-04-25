@@ -1,32 +1,29 @@
-// This file is the ability system component for the game. It is used to manage the abilities of the game characters.
-
+// --- Header Guard & Metadata ---
 #pragma once
 
-// Base Ability System Component from Unreal's GameplayAbilitySystem module
-#include "AbilitySystemComponent.h"
-
-// Core Unreal headers (required for most classes and types)
+// --- Includes ---
 #include "CoreMinimal.h"
-
-// Automatically generated header for this component class
+#include "AbilitySystemComponent.h"
 #include "AOWAbilitySystemComponent.generated.h"
 
 /**
  * UAOWAbilitySystemComponent
- * Custom Ability System Component for managing abilities and gameplay effects in Ashes of War.
+ * 
+ * Custom Ability System Component for Ashes of War RTS.
+ * Manages abilities and gameplay effects for units and heroes.
  */
 UCLASS(ClassGroup = (Custom), meta = (BlueprintSpawnableComponent))
-class ASHESOFWAR_API UAOWAbilitySystemComponent : public UAbilitySystemComponent {
-  GENERATED_BODY()
+class ASHESOFWAR_API UAOWAbilitySystemComponent : public UAbilitySystemComponent
+{
+	GENERATED_BODY()
 
 public:
-  // Constructor: Sets default values for this component's properties
-  UAOWAbilitySystemComponent();
+	// --- Constructor ---
+	UAOWAbilitySystemComponent();
 
 protected:
-  // Called when the game starts (e.g., on actor spawn)
-  virtual void BeginPlay() override;
+	// --- Lifecycle ---
+	virtual void BeginPlay() override;
 
-  // You can later override functions like InitAbilityActorInfo or implement granting default abilities
+	// TODO: You can override InitAbilityActorInfo() or add helper methods to grant default abilities later.
 };
-

@@ -1,14 +1,18 @@
 #pragma once
 
+// --- Includes ---
 #include "CoreMinimal.h"
 #include "AIController.h"
 #include "UnitAIController.generated.h"
 
+// --- Forward Declarations ---
 class UUnitStateTreeAIComponent;
 
 /**
  * AUnitAIController
- * Custom AI controller that manages RTS unit behavior using a StateTree component.
+ * 
+ * Custom AI Controller for RTS units.
+ * Uses a StateTree AI component to manage unit behavior and decision logic.
  */
 UCLASS()
 class ASHESOFWAR_API AUnitAIController : public AAIController
@@ -16,20 +20,20 @@ class ASHESOFWAR_API AUnitAIController : public AAIController
 	GENERATED_BODY()
 
 public:
-	// Constructor: Initializes the AI controller and its components
+	// --- Constructor ---
 	explicit AUnitAIController(const FObjectInitializer& ObjectInitializer = FObjectInitializer::Get());
 
 protected:
-	// Called when the controller is first initialized
+	// --- Lifecycle ---
 	virtual void BeginPlay() override;
 
 public:
-	// Returns the AI StateTree component driving this unit's behavior
+	// --- Getters ---
 	UFUNCTION(BlueprintCallable, Category = "AI")
 	UUnitStateTreeAIComponent* GetUnitStateTreeAIComponent() const;
 
 private:
-	// Reference to the custom AI StateTree component (non-editable in Blueprint)
+	// --- Components ---
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "AI", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UUnitStateTreeAIComponent> UnitStateTreeAIComponent;
 };

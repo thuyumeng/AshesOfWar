@@ -1,26 +1,30 @@
+// --- Includes ---
 #include "UnitAIController.h"
 #include "AshesOfWar/AI/StateTree/UnitStateTreeAIComponent.h"
 
+// --- Constructor ---
 AUnitAIController::AUnitAIController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Create and attach the StateTree component
+	// Initialize the StateTree AI component
 	UnitStateTreeAIComponent = CreateDefaultSubobject<UUnitStateTreeAIComponent>(TEXT("UnitStateTreeAIComponent"));
 }
 
+// --- BeginPlay ---
 void AUnitAIController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Error log if the AI component is missing (should never happen)
+	// Essential error log (only kept log)
 	if (!UnitStateTreeAIComponent)
 	{
-		UE_LOG(LogTemp, Error, TEXT("UnitAIController: UnitStateTreeAIComponent is null!"));
+		UE_LOG(LogTemp, Error, TEXT("❌ UnitAIController: Missing UnitStateTreeAIComponent!"));
 	}
 }
 
+// --- Public Getter ---
 UUnitStateTreeAIComponent* AUnitAIController::GetUnitStateTreeAIComponent() const
 {
 	return UnitStateTreeAIComponent;

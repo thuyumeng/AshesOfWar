@@ -1,11 +1,9 @@
 #include "BaseMinerToResourceTask.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
 #include "AshesOfWar/Units/Base/Miner/Miner.h"
-#include "Kismet/GameplayStatics.h"
 #include "StateTreeExecutionContext.h"
 #include "Navigation/PathFollowingComponent.h"
-#include "AshesOfWar/Resources/Nodes/AResourceNode.h"
-#include "AshesOfWar/Buildings/Base/ABaseBuilding.h"
+
 
 UBaseMinerToResourceTask::UBaseMinerToResourceTask()
 	: UStateTreeTaskBlueprintBase(FObjectInitializer::Get())
@@ -15,6 +13,9 @@ UBaseMinerToResourceTask::UBaseMinerToResourceTask()
 
 void UBaseMinerToResourceTask::OnMoveCompleted(FAIRequestID RequestID, EPathFollowingResult::Type Result)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Miner reached target. Result = %d (Success = %d)"), (int32)Result, (int32)EPathFollowingResult::Success);
+	
+
 	if (Result == EPathFollowingResult::Success)
 	{
 		// Successfully reached the target - finish the task successfully

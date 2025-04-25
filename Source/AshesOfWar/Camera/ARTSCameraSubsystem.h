@@ -1,19 +1,22 @@
-// RTS-style camera subsystem managing movement, zoom, and setup
-
 #pragma once
 
+// --- Includes ---
 #include "CoreMinimal.h"
 #include "Subsystems/WorldSubsystem.h"
 #include "ARTSCameraSubsystem.generated.h"
 
-// Forward declarations to reduce compile dependencies
+// --- Forward Declarations ---
 class UCameraComponent;
 class USpringArmComponent;
 class APlayerController;
 
 /**
  * UARTSCameraSubsystem
- * Subsystem that handles top-down RTS camera logic including movement, zooming, and setup.
+ * 
+ * Subsystem that manages top-down RTS camera behavior:
+ * - Automatic setup on startup
+ * - WASD movement and mouse-wheel zoom
+ * - Centralized handling of camera actor, spring arm and camera component
  */
 UCLASS()
 class ASHESOFWAR_API UARTSCameraSubsystem : public UWorldSubsystem
@@ -21,43 +24,53 @@ class ASHESOFWAR_API UARTSCameraSubsystem : public UWorldSubsystem
 	GENERATED_BODY()
 
 public:
-	// Constructor
+	// --- Constructor ---
 	UARTSCameraSubsystem();
 
-	// Called when the subsystem is initialized
+	// --- Subsystem Lifecycle ---
 	virtual void Initialize(FSubsystemCollectionBase& Collection) override;
-
-	// Called when the subsystem is deinitialized or the world is unloaded
 	virtual void Deinitialize() override;
 
-	// Called every frame to update camera behavior
+	// --- Runtime Updates ---
+	/** Updates camera position and zoom based on player input. Called every frame. */
 	void UpdateCamera(float DeltaTime);
 
-	// Accessor to the managed camera component
+	// --- Accessors ---
+	/** Returns the RTS camera component used in the subsystem. */
 	UCameraComponent* GetCameraComponent() const;
 
 private:
-	// The actual camera used in the world
+	// --- Core References ---
 	UPROPERTY()
 	UCameraComponent* CameraComponent;
 
-	// Spring arm component used for positioning and zooming the camera
 	UPROPERTY()
 	USpringArmComponent* SpringArmComponent;
 
-	// Reference to the player controller owning the camera
 	UPROPERTY()
 	APlayerController* PlayerController;
 
-	// Camera behavior parameters
+	UPROPERTY()
+	AActor* CameraActor;
+
+	// --- Camera Parameters ---
 	float CameraSpeed;
 	float ZoomSpeed;
 	float MinZoom;
 	float MaxZoom;
 
-	// Internal helper functions
-	void TryRetrievePlayerController(); // Called if controller is not available on Init
-	void ConfigureCamera();             // Creates and configures camera and spring arm
-	void MoveCamera(float DeltaTime);   // Handles WASD movement
-	void ZoomCamera(float AxisValue);   // Handles mouse wheel zoom
+	bool bHasLoggedCameraWarning = false;
+
+	// --- Internal Logic ---
+	/** Attempts to retrieve the PlayerController if not immediately available. */
+	void TryRetrievePlayerController();
+
+	/** Configures and spawns the camera actor, spring arm, and camera. */
+	void ConfigureCamera();
+
+	/** Moves the camera actor based on WASD inputs. */
+	void MoveCamera(float DeltaTime);
+
+	/** Zooms the camera in or out based on mouse wheel input. */
+	void ZoomCamera(float AxisValue);
 };

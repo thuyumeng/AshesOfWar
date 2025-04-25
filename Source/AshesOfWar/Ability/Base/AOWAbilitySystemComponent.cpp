@@ -1,21 +1,18 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// --- Includes ---
 #include "AOWAbilitySystemComponent.h"
 
-// Constructor – used to initialize the component's behavior
-UAOWAbilitySystemComponent::UAOWAbilitySystemComponent() {
-  // Allows this component to be ticked every frame (disable if not needed for better performance)
-  PrimaryComponentTick.bCanEverTick = true;
-
-  // ⚠️ Consider setting bCanEverTick = false if no per-frame logic is required
+// --- Constructor ---
+UAOWAbilitySystemComponent::UAOWAbilitySystemComponent()
+{
+	// ⚠️ Tick is enabled by default for this component, but it's often unnecessary.
+	// Disable it if not required to improve performance.
+	PrimaryComponentTick.bCanEverTick = true;
 }
 
-// Called when the game starts
-void UAOWAbilitySystemComponent::BeginPlay() {
-  // Call the parent class implementation of BeginPlay
-  Super::BeginPlay();
+// --- BeginPlay Lifecycle Function ---
+void UAOWAbilitySystemComponent::BeginPlay()
+{
+	Super::BeginPlay();
 
-  // You can initialize gameplay abilities, passive effects, etc., here if needed
+	// 🎯 Initialization logic here (e.g., grant default abilities or apply passive gameplay effects)
 }
-
-

@@ -1,29 +1,25 @@
-// Implementation of custom StateTree AI logic component
-
+// --- Includes ---
 #include "UnitStateTreeAIComponent.h"
 
-// Constructor – initialize any defaults here
+// --- Constructor ---
 UUnitStateTreeAIComponent::UUnitStateTreeAIComponent()
 {
-	// Ticking is disabled by default. Enable only if custom per-frame logic is added.
+	// Ticking is disabled by default — enable only if you need per-frame logic
 	// PrimaryComponentTick.bCanEverTick = true;
 }
 
-// Called when the component is first initialized (e.g., game start or actor spawn)
+// --- Called at game start or when actor spawns ---
 void UUnitStateTreeAIComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Start executing the StateTree behavior logic
+	// Starts execution of the current StateTree asset (set in Blueprint or dynamically)
 	StartLogic();
 }
 
-// Assign a new StateTree asset and reinitialize the component
+// --- Set a new StateTree asset at runtime ---
 void UUnitStateTreeAIComponent::SetStateTree(UStateTree* NewStateTree)
 {
-	// Set the reference to the new StateTree asset
 	StateTreeRef.SetStateTree(NewStateTree);
-
-	// Reinitialize the component so it starts using the new behavior tree
-	InitializeComponent();
+	InitializeComponent(); // Rebuilds internal logic based on new asset
 }

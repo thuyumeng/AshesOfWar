@@ -1,7 +1,6 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
+// --- Includes ---
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
 #include "AshesOfWar/Resources/ResourcesTypes/EResourceType.h"
@@ -9,9 +8,9 @@
 #include "ARTSGameState.generated.h"
 
 /**
- * RTS Game State class for managing player resource data.
- * This class keeps track of the resources owned by each player (human or AI)
- * and provides functions to add, spend, or query resource amounts.
+ * AARTSGameState
+ * 
+ * Custom GameState for RTS. Tracks player resources and provides methods to modify them.
  */
 UCLASS()
 class ASHESOFWAR_API AARTSGameState : public AGameState
@@ -19,25 +18,27 @@ class ASHESOFWAR_API AARTSGameState : public AGameState
 	GENERATED_BODY()
 
 public:
-	// Constructor
+	// --- Constructor ---
 	AARTSGameState();
 
-	// Initializes player resources when the game starts
+	// --- Lifecycle ---
 	virtual void BeginPlay() override;
 
-	// Stores resources for each player using their PlayerState as a key
+	// --- Resource System ---
+
+	/** Holds the resource counts for each player */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resource")
 	TMap<APlayerState*, FPlayerResourceData> PlayerResources;
 
-	// Adds a specific amount of a resource to a player
+	/** Adds a specified resource amount to a player */
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void AddResource(APlayerState* Player, EResourceType ResourceType, int32 Amount);
 
-	// Tries to spend a specific amount of a resource; returns true if the player has enough
+	/** Attempts to deduct a resource amount from a player. Returns true if successful. */
 	UFUNCTION(BlueprintCallable, Category = "Resource")
-	bool SpendResource(APlayerState* Player, EResourceType ResourceType, int32 Amount);
+	bool SpendResource(APlayerState* Player, EResourceType ResourceType, float Amount);
 
-	// Returns the amount of a given resource type that a player currently has
+	/** Retrieves the current amount of a specific resource for a player */
 	UFUNCTION(BlueprintCallable, Category = "Resource")
-	int32 GetResourceAmount(APlayerState* Player, EResourceType ResourceType) const;
+	float GetResourceAmount(APlayerState* Player, EResourceType ResourceType) const;
 };
