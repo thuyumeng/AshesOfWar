@@ -62,20 +62,72 @@ void AMiner::HandleMining(float DeltaTime)
 	{
 		StopMining();
 		ResourceComponent->SetCurrentResourceNode(nullptr);
+
+		// Affichage du log d'erreur une fois toutes les 5 secondes
+		static float EmptyNodeLogTimer = 0.f;
+		EmptyNodeLogTimer += DeltaTime;
+
+		if (EmptyNodeLogTimer >= 5.f)
+		{
+			UE_LOG(LogTemp, Error, TEXT("❗ Le node est vide, minage arrêté."));
+			EmptyNodeLogTimer = 0.f;
+		}
+
 		return;
 	}
 
 	if (FVector::Dist(GetActorLocation(), Resource->GetActorLocation()) <= MiningDistanceThreshold)
 	{
-		CarriedResourceType = Resource->GetResourceType();
-		CarriedAmount += CollectionRatePerSecond * DeltaTime;
-		CarriedAmount = FMath::Clamp(CarriedAmount, 0.f, static_cast<float>(CarriedCapacity));
+		static float RemainingLogAccumulator = 0.f;
+		RemainingLogAccumulator += DeltaTime;
 
+		if (RemainingLogAccumulator >= 1.f)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[⛏️ Node Stat] Ressource restante : %d unités (%s)"),
+				Resource->GetQteDisponible(),
+				*UEnum::GetValueAsString(Resource->GetResourceType()));
+
+			RemainingLogAccumulator = 0.f;
+		}
+		CarriedResourceType = Resource->GetResourceType();
+
+		// Accumule la quantité potentielle à extraire
+		ResourceAccumulator += CollectionRatePerSecond * DeltaTime;
+
+		// Extraction quand une unité pleine est atteinte
+		int32 UnitsToExtract = FMath::FloorToInt(ResourceAccumulator);
+		if (UnitsToExtract > 0)
+		{
+			int32 Available = Resource->GetQteDisponible();
+			int32 ActualExtracted = FMath::Min(Available, UnitsToExtract);
+
+			CarriedAmount += ActualExtracted;
+			CarriedAmount = FMath::Clamp(CarriedAmount, 0.f, static_cast<float>(CarriedCapacity));
+			Resource->SetQteDisponible(Available - ActualExtracted);
+
+			ResourceAccumulator -= ActualExtracted;
+
+			// Accumulation pour limiter les logs à 1 seconde
+			static float LogTimeAccumulator = 0.f;
+			LogTimeAccumulator += DeltaTime;
+			if (LogTimeAccumulator >= 1.f)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[⛏️ Minage Tick] -%d récolté | Node: %d restant | Transporté: %.2f / %d"),
+					ActualExtracted,
+					Resource->GetQteDisponible(),
+					CarriedAmount,
+					CarriedCapacity);
+				LogTimeAccumulator = 0.f;
+			}
+		}
+
+		// Si plein, on passe au dépôt
 		if (CarriedAmount >= CarriedCapacity)
 		{
 			bIsDepositing = true;
 			FindNearestHQBase();
 			MoveToDeposit();
+			UE_LOG(LogTemp, Warning, TEXT("📦 Capacité atteinte. Début du dépôt..."));
 		}
 	}
 	else
@@ -83,6 +135,8 @@ void AMiner::HandleMining(float DeltaTime)
 		MoveToLocation(Resource->GetActorLocation());
 	}
 }
+
+
 
 void AMiner::HandleDepositing(float DeltaTime)
 {
@@ -112,7 +166,20 @@ void AMiner::MoveToDeposit()
 
 void AMiner::DepositAtBase()
 {
-	if (CarriedAmount <= 0 || !CurrentDepositBaseTarget) return;
+	if (CarriedAmount <= 0 || !CurrentDepositBaseTarget)
+	{
+		if (CarriedAmount > 0 && ResourceComponent && ResourceComponent->GetCurrentResourceNode())
+		{
+			int NodeRemaining = ResourceComponent->GetCurrentResourceNode()->GetQteDisponible();
+			if (NodeRemaining <= 0)
+			{
+				UE_LOG(LogTemp, Error, TEXT("🚨 Le mineur transporte %.2f %s alors que le node est VIDE."),
+					CarriedAmount,
+					*UEnum::GetValueAsString(CarriedResourceType));
+			}
+		}
+		return;
+	} 
 
 	if (AARTSGameState* GameState = GetWorld()->GetGameState<AARTSGameState>())
 	{
@@ -130,17 +197,12 @@ void AMiner::DepositAtBase()
 		UE_LOG(LogTemp, Error, TEXT("❌ DepositAtBase: GameState not found"));
 	}
 
-	if (ResourceComponent)
-	{
-		if (AAResourceNode* ResourceNode = ResourceComponent->GetCurrentResourceNode())
-		{
-			ResourceNode->ConsumeResource(CarriedAmount);
-		}
-	}
+	// Plus besoin de retirer les ressources du node ici, ça a déjà été fait dans BeginCollection()
 
 	CarriedAmount = 0;
 	bIsDepositing = false;
 }
+
 
 void AMiner::FindNearestHQBase()
 {
@@ -188,9 +250,28 @@ void AMiner::MineResource()
 {
 	if (ResourceComponent)
 	{
+		AAResourceNode* Node = ResourceComponent->GetCurrentResourceNode();
+
+		// Vérifie que le node est valide et contient des ressources
+		if (!Node)
+		{
+			UE_LOG(LogTemp, Error, TEXT("❗ MineResource() : Aucun node assigné. Minage annulé."));
+			return;
+		}
+
+		if (Node->GetQteDisponible() <= 0)
+		{
+			UE_LOG(LogTemp, Error, TEXT("❗ MineResource() : Node %s est vide (%d unités). Minage bloqué."),
+				*Node->GetName(),
+				Node->GetQteDisponible());
+			return;
+		}
+
+		// Lancement de la collecte
 		ResourceComponent->BeginCollection();
 	}
 }
+
 
 void AMiner::StopMining()
 {

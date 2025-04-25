@@ -24,6 +24,7 @@ void UResourceComponent::BeginCollection()
 {
 	if (!CurrentResourceNode || bIsCollecting)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("⛔ Impossible de commencer la collecte : node invalide ou déjà en cours."));
 		return;
 	}
 
@@ -34,16 +35,20 @@ void UResourceComponent::BeginCollection()
 
 	if (Available <= 0 || ExtractionRate <= 0)
 	{
+		UE_LOG(LogTemp, Error, TEXT("❌ Node vide ou taux d'extraction invalide. Minage annulé."));
 		return;
 	}
 
-	const int32 MaxExtractable = FMath::Min(CarriedMaxCapacity, Available);
-	const int32 AmountExtracted = FMath::Min(MaxExtractable, ExtractionRate);
-
-	CarriedAmount = AmountExtracted;
-	CurrentResourceNode->SetQteDisponible(Available - AmountExtracted);
+	// Activation seulement, pas d'extraction ici
 	bIsCollecting = true;
+
+	// Log unique à l’init
+	UE_LOG(LogTemp, Warning, TEXT("[⛏️ Collection Init] Début du minage | Node: %d | Taux: %d/sec | Type: %s"),
+		Available,
+		ExtractionRate,
+		*UEnum::GetValueAsString(CarriedResourceType));
 }
+
 
 // --- Stop resource collection ---
 void UResourceComponent::StopCollection()

@@ -110,6 +110,8 @@ protected:
 
 	bool bIsDepositing = false;
 
+	float ResourceAccumulator = 0.f;
+
 	// --- Internal Logic ---
 	void HandleMining(float DeltaTime);
 	void HandleDepositing(float DeltaTime);
