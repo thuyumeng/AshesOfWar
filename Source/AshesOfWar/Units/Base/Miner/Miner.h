@@ -79,6 +79,7 @@ protected:
 	void MoveToDeposit();
 	void DepositAtBase();
 	void FindNearestHQBase();
+	virtual void InitializeAttributeSet() override;
 
 // ------------------ Components ------------------
 protected:
@@ -92,7 +93,7 @@ protected:
 protected:
 	UPROPERTY()
 	TArray<AActor*> ActiveConstructionTargets;
-
+	
 // ------------------ Resource Handling ------------------
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Resource")

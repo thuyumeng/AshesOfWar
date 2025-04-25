@@ -36,9 +36,6 @@ public:
 	// GAS requirement
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	// Returns this unit's attribute set
-	virtual UAOWAttributeSet* GetAttributeSet() const;
-
 	// Retrieves the unit's AI Controller
 	TObjectPtr<AUnitAIController> GetAIController() const;
 
@@ -56,29 +53,34 @@ public:
 protected:
 	// Called at spawn time
 	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents() override;
+
+	// Overridden by subclass to initialize the corresponding attributeSet
+	virtual void InitializeAttributeSet();
 
 	// Gives the unit its default gameplay abilities
 	void GiveDefaultAbilities();
 
-	// Applies the base gameplay effect that sets initial stats
+	// Initialze the default attributes for the unit
 	void InitDefaultAttributes();
+
+	// Utility function to set the attributeSet by the CurveTable
+	void SetAttributeSetByCurveTable(UCurveTable* DataTable, const FName& GroupName);
+
+	// Initialize the decal
+	void InitializeDecal();
 
 	// --- GAS Components ---
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ability", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAOWAbilitySystemComponent> AbilitySystemComponent;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Attribute", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UAOWAttributeSet> AttributeSet;
-
+	
 	// --- GAS Definitions (editable in Blueprint) ---
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	TArray<TSubclassOf<UGameplayAbility>> DefaultAbilities;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Ability")
-	TSubclassOf<UGameplayEffect> DefaultAttributeEffect;
-
+	// --- The DecalComponent for selection
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UDecalComponent* DecalComponent;
 };

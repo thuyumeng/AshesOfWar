@@ -1,7 +1,6 @@
 ﻿#include "Technoforgeur.h"
 #include "AshesOfWar/Ability/Base/AOWAbilitySystemComponent.h"
-#include "AshesOfWar/Ability/Base/AOWAttributeSet.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "AshesOfWar/Ability/Base/Attributes/HealthAttributeSet.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "AshesOfWar/Units/Base/Unit.h"
@@ -42,11 +41,11 @@ void ATechnoforgeur::RepairNearbyAllies()
 				UAOWAbilitySystemComponent* ASC = Cast<UAOWAbilitySystemComponent>(AllyUnit->GetAbilitySystemComponent());
 				if (ASC)
 				{
-					const UAOWAttributeSet* ConstAttrSet = ASC->GetSet<UAOWAttributeSet>();
+					const UHealthAttributeSet* ConstAttrSet = ASC->GetSet<UHealthAttributeSet>();
 					if (ConstAttrSet)
 					{
 						// Remove const to modify attributes (safe because we control the call)
-						UAOWAttributeSet* AttrSet = const_cast<UAOWAttributeSet*>(ConstAttrSet);
+						UHealthAttributeSet* AttrSet = const_cast<UHealthAttributeSet*>(ConstAttrSet);
 
 						const float CurrentHP = AttrSet->GetHealth();
 						const float MaxHP = AttrSet->GetMaxHealth();

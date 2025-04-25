@@ -137,6 +137,7 @@ void ARTSPlayerController::HandleRightClick()
 		else
 		{
 			SelectedUnit->MoveToLocation(TargetLocation);
+			MainHUD->ShowRightClickEffect(TargetLocation);
 		}
 	}
 }
