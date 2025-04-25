@@ -1,7 +1,6 @@
 ﻿#include "Technoforgeur.h"
 #include "AshesOfWar/Ability/Base/AOWAbilitySystemComponent.h"
-#include "AshesOfWar/Ability/Base/AOWAttributeSet.h"
-#include "GameFramework/CharacterMovementComponent.h"
+#include "AshesOfWar/Ability/Base/Attributes/AOWAttributeSet.h"
 #include "TimerManager.h"
 #include "Kismet/GameplayStatics.h"
 #include "AshesOfWar/Units/Base/Unit.h"

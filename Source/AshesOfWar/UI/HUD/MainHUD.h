@@ -44,5 +44,5 @@ public:
 	/**
 	 * Show the right click effect of the cursor
 	 */
-	void ShowRightClickEffect(const FVector& TargetLocation);
+	void ShowRightClickEffect(const FVector& TargetLocation) const;
 };

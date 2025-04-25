@@ -1,26 +1,16 @@
+// The AttributeSet of a unit in Ashes of War.
+
 #pragma once
 
-// --- Includes ---
 #include "CoreMinimal.h"
+#include "AttributeSetMacro.h"
 #include "AttributeSet.h"
-#include "AbilitySystemComponent.h"
 #include "AOWAttributeSet.generated.h"
 
-// --- Macros ---
-#define ATTRIBUTE_ACCESSORS(ClassName, PropertyName) \
-	GAMEPLAYATTRIBUTE_PROPERTY_GETTER(ClassName, PropertyName) \
-	GAMEPLAYATTRIBUTE_VALUE_GETTER(PropertyName) \
-	GAMEPLAYATTRIBUTE_VALUE_SETTER(PropertyName) \
-	GAMEPLAYATTRIBUTE_VALUE_INITTER(PropertyName)
-
-#define NUMERIC_VALUE(AttributeSetName, PropertyName) \
-	AttributeSetName->Get##PropertyName##Attribute().GetNumericValue(AttributeSetName)
 
 /**
  * UAOWAttributeSet
- * 
- * Defines all base attributes used in Ashes of War for units and heroes.
- * Attributes include Health, Damage, Speed, Defense, and more.
+ * Core set of gameplay attributes (e.g., Health, Speed, Damage) replicated and used by gameplay abilities and effects.
  */
 UCLASS()
 class ASHESOFWAR_API UAOWAttributeSet : public UAttributeSet
@@ -28,49 +18,71 @@ class ASHESOFWAR_API UAOWAttributeSet : public UAttributeSet
 	GENERATED_BODY()
 
 public:
-	// --- Constructor ---
+	// Constructor
 	UAOWAttributeSet();
 
-	// --- Replication ---
+	// Required for replication of attributes
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
-	// --- GAS Lifecycle ---
+	// Called before modifying an attribute (can be used to clamp or preprocess values)
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
+
+	// Called after an effect modifies an attribute (ideal for post-processing, clamping, logic)
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
-	// --- Health Attributes ---
+	// ------------ Health Attributes ------------
+
+	// Current Health
 	UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_Health)
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UAOWAttributeSet, Health)
 
+	// Maximum Health
 	UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_MaxHealth)
 	FGameplayAttributeData MaxHealth;
 	ATTRIBUTE_ACCESSORS(UAOWAttributeSet, MaxHealth)
 
+	// Health Regeneration Rate (e.g., per second)
 	UPROPERTY(BlueprintReadOnly, Category = "Health", ReplicatedUsing = OnRep_HealthRegen)
 	FGameplayAttributeData HealthRegen;
 	ATTRIBUTE_ACCESSORS(UAOWAttributeSet, HealthRegen)
 
-	// --- Movement ---
+	// ------------ Movement ------------
+
 	UPROPERTY(BlueprintReadOnly, Category = "Speed", ReplicatedUsing = OnRep_Speed)
 	FGameplayAttributeData Speed;
 	ATTRIBUTE_ACCESSORS(UAOWAttributeSet, Speed)
 
-	// --- Damage ---
+	// ------------ Damage ------------
+
 	UPROPERTY(BlueprintReadOnly, Category = "Damage", ReplicatedUsing = OnRep_AttackDamage)
 	FGameplayAttributeData AttackDamage;
 	ATTRIBUTE_ACCESSORS(UAOWAttributeSet, AttackDamage)
 
-	// --- Defense ---
+	// ------------ Replication Notification ------------
+
+	UFUNCTION()
+	void OnRep_Health(const FGameplayAttributeData& OldHealth) const;
+
+	UFUNCTION()
+	void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth) const;
+
+	UFUNCTION()
+	void OnRep_HealthRegen(const FGameplayAttributeData& OldHealthRegen) const;
+
+	UFUNCTION()
+	void OnRep_Speed(const FGameplayAttributeData& OldSpeed) const;
+
+	UFUNCTION()
+	void OnRep_AttackDamage(const FGameplayAttributeData& OldAttackDamage) const;
+
+	// ------------ Defense ------------
+
 	UPROPERTY(BlueprintReadOnly, Category = "Defense", ReplicatedUsing = OnRep_DefenseRating)
 	FGameplayAttributeData DefenseRating;
 	ATTRIBUTE_ACCESSORS(UAOWAttributeSet, DefenseRating)
 
-	// --- Replication Notifications ---
-	UFUNCTION() void OnRep_Health(const FGameplayAttributeData& OldValue) const;
-	UFUNCTION() void OnRep_MaxHealth(const FGameplayAttributeData& OldValue) const;
-	UFUNCTION() void OnRep_HealthRegen(const FGameplayAttributeData& OldValue) const;
-	UFUNCTION() void OnRep_Speed(const FGameplayAttributeData& OldValue) const;
-	UFUNCTION() void OnRep_AttackDamage(const FGameplayAttributeData& OldValue) const;
-	UFUNCTION() void OnRep_DefenseRating(const FGameplayAttributeData& OldValue) const;
+	UFUNCTION()
+	void OnRep_DefenseRating(const FGameplayAttributeData& OldDefenseRating) const;
+
 };

@@ -1,6 +1,6 @@
 #include "UBuildingAuraComponent.h"
 #include "AbilitySystemComponent.h"
-#include "AshesOfWar/Ability/Base/AOWAttributeSet.h"
+#include "AshesOfWar/Ability/Base/Attributes/AOWAttributeSet.h"
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/Actor.h"

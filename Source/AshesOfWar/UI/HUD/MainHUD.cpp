@@ -6,13 +6,13 @@
 #include "AshesOfWar/Core/PlayerControllers/ARTSPlayerController.h"
 #include "Kismet/GameplayStatics.h"
 
-AMainHUD::AMainHUD()
+AMainHUD::AMainHUD(): SelectionRectStart(), SelectionRectSize()
 {
 	// load the right click decal material
 	if (RightClickDecalMaterialInterface.IsNull())
 	{
-		static ConstructorHelpers::FObjectFinder<UMaterialInterface> DecalMaterial(TEXT("/Game/Material/MouseEffect/M_RightClickEffect.M_RightClickEffect"));
-		// static ConstructorHelpers::FObjectFinder<UMaterialInterface> DecalMaterial(TEXT("/Game/Material/Unit/M_SelectionDecal.M_SelectionDecal"));
+		static ConstructorHelpers::FObjectFinder<UMaterialInterface> DecalMaterial(
+			TEXT("/Game/Material/MouseEffect/M_RightClickEffect.M_RightClickEffect"));
 		if (DecalMaterial.Succeeded())
 		{
 			RightClickDecalMaterialInterface = DecalMaterial.Object;
@@ -65,7 +65,7 @@ void AMainHUD::HideSelectionRect()
 	SelectedUnits.Empty();
 }
 
-void AMainHUD::ShowRightClickEffect(const FVector& TargetLocation)
+void AMainHUD::ShowRightClickEffect(const FVector& TargetLocation) const
 {
 	UGameplayStatics::SpawnDecalAtLocation(
 		GetWorld(),
