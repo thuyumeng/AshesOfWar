@@ -1,6 +1,6 @@
 #include "UBuildingAuraComponent.h"
 #include "AbilitySystemComponent.h"
-#include "AshesOfWar/Ability/Base/Attributes/AOWAttributeSet.h"
+#include "AshesOfWar/Ability/Base/Attributes/HealthAttributeSet.h"
 #include "Engine/World.h"
 #include "DrawDebugHelpers.h"
 #include "GameFramework/Actor.h"
@@ -68,8 +68,8 @@ void UBuildingAuraComponent::ApplyAuraToNearbyUnits()
 		if (UAbilitySystemComponent* ASC = Actor->FindComponentByClass<UAbilitySystemComponent>())
 		{
 			// Check if the unit is alive (Health > 0)
-			const UAOWAttributeSet* AttrSet = ASC->GetSet<UAOWAttributeSet>();
-			if (AttrSet && AttrSet->GetHealth() > 0.f)
+			const UHealthAttributeSet* HealthSet = ASC->GetSet<UHealthAttributeSet>();
+			if (HealthSet && HealthSet->GetHealth() > 0.f)
 			{
 				NewAffected.Add(Actor);
 

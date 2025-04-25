@@ -6,7 +6,6 @@
 #include "AshesOfWar/Resources/ResourcesTypes/EResourceType.h"
 #include "Miner.generated.h"
 
-// Forward declarations
 class UResourceComponent;
 class AAResourceNode;
 class UStateTree;
@@ -22,93 +21,68 @@ class ASHESOFWAR_API AMiner : public AUnit
 	GENERATED_BODY()
 
 public:
-	// Constructor
 	AMiner();
 
 protected:
-	/** Called when the unit is initialized. */
 	virtual void OnBeginPlay_Implementation() override;
-
-	/** Called every frame to update mining or depositing behaviors. */
 	virtual void Tick(float DeltaTime) override;
 
+// ------------------ Resource Collection ------------------
 public:
-	// --- Resource Collection ---
-
-	/** Starts mining at the assigned resource node. */
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void MineResource();
 
-	/** Stops the mining operation. */
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void StopMining();
 
-	/** Manually deposits currently collected resources. */
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void DepositCollectedResources();
 
-	/** Assigns a resource node to mine from. */
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void SetCurrentResourceNode(AAResourceNode* NewNode);
 
-	/** Returns the attached resource component. */
-	UResourceComponent* GetResourceComponent() const;
-
-	// --- Construction ---
-
-	/** Adds a target building to help construct. */
-	UFUNCTION(BlueprintCallable, Category = "Construction")
-	void AddConstructionTarget(AActor* Building);
-
-	/** Removes a building from the active construction list. */
-	UFUNCTION(BlueprintCallable, Category = "Construction")
-	void RemoveConstructionTarget(AActor* Building);
-
-	/** Returns whether the unit is currently constructing a building. */
-	UFUNCTION(BlueprintCallable, Category = "Construction")
-	bool IsConstructing() const;
-
-	// --- Deposit & Target Management ---
-
-	/** Returns true if the miner is currently depositing resources. */
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	bool IsDepositing() const;
 
-	/** Returns the current base building used for depositing resources. */
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	AActor* GetCurrentDepositTarget() const;
 
-	/** Returns the current resource node the miner is assigned to. */
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	AActor* GetCurrentResourceTarget() const;
 
-	/** Moves the unit towards a specified destination. */
+	UResourceComponent* GetResourceComponent() const;
+
+// ------------------ Construction ------------------
+public:
+	UFUNCTION(BlueprintCallable, Category = "Construction")
+	void AddConstructionTarget(AActor* Building);
+
+	UFUNCTION(BlueprintCallable, Category = "Construction")
+	void RemoveConstructionTarget(AActor* Building);
+
+	UFUNCTION(BlueprintCallable, Category = "Construction")
+	bool IsConstructing() const;
+
+// ------------------ Ownership ------------------
+public:
+	void SetOwningPlayerState(APlayerState* Player);
+	APlayerState* GetOwningPlayerState() const;
+
+// ------------------ Movement ------------------
+public:
 	void MoveToLocation(const FVector& Destination);
 
+// ------------------ Internal Logic ------------------
 protected:
-	// --- Resource Management ---
-
-	/** Handles active mining logic each frame. */
 	void HandleMining(float DeltaTime);
-
-	/** Handles depositing logic when returning to base. */
 	void HandleDepositing(float DeltaTime);
-
-	/** Commands the miner to move toward the nearest deposit base. */
 	void MoveToDeposit();
-
-	/** Deposits carried resources into the current base. */
 	void DepositAtBase();
-
-	/** Searches for the nearest HQ base to deposit resources. */
 	void FindNearestHQBase();
-
-	/** Initialize the attribute of the Unit by the CurveTable*/
 	virtual void InitializeAttributeSet() override;
-	
+
 // ------------------ Components ------------------
 protected:
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Resource", meta = (AllowPrivateAccess = "true"))
 	UResourceComponent* ResourceComponent;
 
@@ -119,32 +93,34 @@ protected:
 protected:
 	UPROPERTY()
 	TArray<AActor*> ActiveConstructionTargets;
-
-	// --- Mining Properties ---
-
+	
+// ------------------ Resource Handling ------------------
+protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Resource")
 	int32 CarriedCapacity = 50;
 
 	UPROPERTY(VisibleAnywhere, Category = "Resource")
-	int32 CarriedAmount = 0;
+	float CarriedAmount = 0.f;
 
 	UPROPERTY(VisibleAnywhere, Category = "Resource")
 	EResourceType CarriedResourceType = EResourceType::Aetherium;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Resource")
-	float MiningDistanceThreshold = 150.f;
+	float MiningDistanceThreshold = 200.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Resource")
-	float DepositDistanceThreshold = 150.f;
+	float DepositDistanceThreshold = 200.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Resource")
-	float CollectionRatePerSecond = 10.f; // Amount collected per second
+	float CollectionRatePerSecond = 10.f;
 
-	// --- Depositing ---
+	UPROPERTY()
+	APlayerState* OwningPlayerState = nullptr;
 
 	UPROPERTY()
 	ABaseBuilding* CurrentDepositBaseTarget;
 
-	/** Whether the miner is in depositing mode (returning to base). */
 	bool bIsDepositing = false;
+	bool bNodeReportedEmpty = false;
+	float ResourceAccumulator = 0.f;
 };

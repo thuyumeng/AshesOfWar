@@ -5,27 +5,41 @@
 #include "AshesOfWar/Resources/Nodes/AResourceNode.h"
 #include "AshesOfWar/Buildings/Base/ABaseBuilding.h"
 #include "AshesOfWar/Core/GameStates/ARTSGameState.h"
+#include "EngineUtils.h"
+#include "AshesOfWar/Buildings/Base/EBuildingType.h"
 #include "GameFramework/PlayerState.h"
+#include "Kismet/GameplayStatics.h"
+#include "Navigation/PathFollowingComponent.h"
 
+// -------------------- Constructor --------------------
 AMiner::AMiner()
 {
 	PrimaryActorTick.bCanEverTick = true;
-
 	ResourceComponent = CreateDefaultSubobject<UResourceComponent>(TEXT("ResourceComponent"));
 }
 
+// -------------------- Lifecycle --------------------
 void AMiner::OnBeginPlay_Implementation()
 {
 	Super::OnBeginPlay_Implementation();
 
-	AUnitAIController* AIController = GetAIController();
-	if (AIController)
+	if (!OwningPlayerState)
 	{
-		UUnitStateTreeAIComponent* StateTreeAIComponent = AIController->GetUnitStateTreeAIComponent();
-		if (StateTreeAIComponent && MinerStateTreeAsset)
+		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 		{
-			StateTreeAIComponent->SetStateTree(MinerStateTreeAsset);
-			StateTreeAIComponent->StartLogic();
+			SetOwningPlayerState(PC->PlayerState);
+		}
+	}
+
+	if (AUnitAIController* AIController = GetAIController())
+	{
+		if (UUnitStateTreeAIComponent* StateTreeAIComponent = AIController->GetUnitStateTreeAIComponent())
+		{
+			if (MinerStateTreeAsset)
+			{
+				StateTreeAIComponent->SetStateTree(MinerStateTreeAsset);
+				StateTreeAIComponent->StartLogic();
+			}
 		}
 	}
 }
@@ -33,38 +47,71 @@ void AMiner::OnBeginPlay_Implementation()
 void AMiner::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	if (bIsDepositing)
-	{
-		HandleDepositing(DeltaTime);
-	}
-	else
-	{
-		HandleMining(DeltaTime);
-	}
+	if (bIsDepositing) HandleDepositing(DeltaTime);
+	else HandleMining(DeltaTime);
 }
 
-// --- Mining Logic ---
-
+// -------------------- Mining Logic --------------------
 void AMiner::HandleMining(float DeltaTime)
 {
 	if (!ResourceComponent) return;
 
 	AAResourceNode* Resource = ResourceComponent->GetCurrentResourceNode();
-	if (!Resource) return;
 
-	if (Resource->GetQteDisponible() <= 0)
+	if (!Resource || Resource->GetQteDisponible() <= 0)
 	{
+		FVector SearchOrigin = Resource ? Resource->GetActorLocation() : GetActorLocation();
+		AAResourceNode* NearestValidNode = nullptr;
+		float NearestDist = 450.f;
+
+		for (TActorIterator<AAResourceNode> It(GetWorld()); It; ++It)
+		{
+			AAResourceNode* OtherNode = *It;
+			if (OtherNode && OtherNode->GetQteDisponible() > 0 && OtherNode != Resource)
+			{
+				float Distance = FVector::Dist(SearchOrigin, OtherNode->GetActorLocation());
+				if (Distance <= NearestDist)
+				{
+					NearestValidNode = OtherNode;
+					NearestDist = Distance;
+				}
+			}
+		}
+
+		if (NearestValidNode)
+		{
+			SetCurrentResourceNode(NearestValidNode);
+			MineResource();
+			return;
+		}
+
 		StopMining();
 		ResourceComponent->SetCurrentResourceNode(nullptr);
+		static float EmptyNodeLogTimer = 0.f;
+		EmptyNodeLogTimer += DeltaTime;
+		if (!bNodeReportedEmpty && EmptyNodeLogTimer >= 5.f)
+		{
+			EmptyNodeLogTimer = 0.f;
+			bNodeReportedEmpty = true;
+		}
 		return;
 	}
 
 	if (FVector::Dist(GetActorLocation(), Resource->GetActorLocation()) <= MiningDistanceThreshold)
 	{
+		bNodeReportedEmpty = false;
 		CarriedResourceType = Resource->GetResourceType();
-		CarriedAmount += CollectionRatePerSecond * DeltaTime;
-		CarriedAmount = FMath::Clamp(CarriedAmount, 0, CarriedCapacity);
+		ResourceAccumulator += CollectionRatePerSecond * DeltaTime;
+		int32 UnitsToExtract = FMath::FloorToInt(ResourceAccumulator);
+		if (UnitsToExtract > 0)
+		{
+			int32 Available = Resource->GetQteDisponible();
+			int32 ActualExtracted = FMath::Min(Available, UnitsToExtract);
+			CarriedAmount += ActualExtracted;
+			CarriedAmount = FMath::Clamp(CarriedAmount, 0.f, static_cast<float>(CarriedCapacity));
+			Resource->SetQteDisponible(Available - ActualExtracted);
+			ResourceAccumulator -= ActualExtracted;
+		}
 
 		if (CarriedAmount >= CarriedCapacity)
 		{
@@ -79,6 +126,7 @@ void AMiner::HandleMining(float DeltaTime)
 	}
 }
 
+// -------------------- Deposit Logic --------------------
 void AMiner::HandleDepositing(float DeltaTime)
 {
 	if (!CurrentDepositBaseTarget)
@@ -107,21 +155,15 @@ void AMiner::MoveToDeposit()
 
 void AMiner::DepositAtBase()
 {
-	if (CarriedAmount <= 0 || !CurrentDepositBaseTarget)
-	{
-		return;
-	}
+	if (CarriedAmount <= 0 || !CurrentDepositBaseTarget) return;
 
-	AARTSGameState* GameState = GetWorld()->GetGameState<AARTSGameState>();
-	if (GameState)
+	if (AARTSGameState* GameState = GetWorld()->GetGameState<AARTSGameState>())
 	{
-		APlayerState* MyPlayerState = GetPlayerState<APlayerState>();
-		if (MyPlayerState)
+		if (APlayerState* MyPlayerState = GetOwningPlayerState())
 		{
-			GameState->AddResource(MyPlayerState, CarriedResourceType, CarriedAmount);
+			GameState->AddResource(MyPlayerState, CarriedResourceType, static_cast<int32>(CarriedAmount));
 		}
 	}
-
 	CarriedAmount = 0;
 	bIsDepositing = false;
 }
@@ -129,34 +171,25 @@ void AMiner::DepositAtBase()
 // -------------------- Resource Commands --------------------
 void AMiner::MineResource()
 {
-	if (ResourceComponent)
-	{
-		ResourceComponent->BeginCollection();
-	}
+	if (!ResourceComponent) return;
+	AAResourceNode* Node = ResourceComponent->GetCurrentResourceNode();
+	if (!Node || Node->GetQteDisponible() <= 0) return;
+	ResourceComponent->BeginCollection();
 }
 
 void AMiner::StopMining()
 {
-	if (ResourceComponent)
-	{
-		ResourceComponent->StopCollection();
-	}
+	if (ResourceComponent) ResourceComponent->StopCollection();
 }
 
 void AMiner::DepositCollectedResources()
 {
-	if (ResourceComponent)
-	{
-		ResourceComponent->DepositResources();
-	}
+	if (ResourceComponent) ResourceComponent->DepositResources();
 }
 
 void AMiner::SetCurrentResourceNode(AAResourceNode* NewNode)
 {
-	if (ResourceComponent)
-	{
-		ResourceComponent->SetCurrentResourceNode(NewNode);
-	}
+	if (ResourceComponent) ResourceComponent->SetCurrentResourceNode(NewNode);
 }
 
 UResourceComponent* AMiner::GetResourceComponent() const
@@ -164,8 +197,7 @@ UResourceComponent* AMiner::GetResourceComponent() const
 	return ResourceComponent;
 }
 
-// --- Construction Interface ---
-
+// -------------------- Construction --------------------
 void AMiner::AddConstructionTarget(AActor* Building)
 {
 	if (Building && !ActiveConstructionTargets.Contains(Building))
@@ -187,8 +219,70 @@ bool AMiner::IsConstructing() const
 	return ActiveConstructionTargets.Num() > 0;
 }
 
-// --- Query Status ---
+// -------------------- Ownership --------------------
+void AMiner::SetOwningPlayerState(APlayerState* Player)
+{
+	OwningPlayerState = Player;
+}
 
+APlayerState* AMiner::GetOwningPlayerState() const
+{
+	return OwningPlayerState;
+}
+
+// -------------------- Movement --------------------
+void AMiner::MoveToLocation(const FVector& Destination)
+{
+	if (AUnitAIController* AIController = Cast<AUnitAIController>(GetController()))
+	{
+		FAIMoveRequest MoveRequest;
+		MoveRequest.SetGoalLocation(Destination);
+		MoveRequest.SetAcceptanceRadius(120.f);
+		FNavPathSharedPtr NavPath;
+		AIController->MoveTo(MoveRequest, &NavPath);
+	}
+}
+
+// -------------------- Find Deposit Location --------------------
+void AMiner::FindNearestHQBase()
+{
+	//if (AARTSGameState* GameState = GetWorld()->GetGameState<AARTSGameState>())
+	//{
+		float MinDistance = TNumericLimits<float>::Max();
+		ABaseBuilding* BestBase = nullptr;
+		for (TActorIterator<ABaseBuilding> It(GetWorld()); It; ++It)
+		{
+			ABaseBuilding* Base = *It;
+			if (!Base || Base->BuildingData.BuildingType != EBuildingType::HQ) continue;
+			float Distance = FVector::Dist(GetActorLocation(), Base->GetActorLocation());
+			if (Distance < MinDistance)
+			{
+				MinDistance = Distance;
+				BestBase = Base;
+			}
+		}
+		CurrentDepositBaseTarget = BestBase;
+	//}
+}
+
+void AMiner::InitializeAttributeSet()
+{
+	//Load the curvetable from the asset manager
+	UCurveTable* CurveTable = LoadObject<UCurveTable>(
+		nullptr,
+		TEXT("CurveTable'/Game/DataTables/AttributeSets/MinnerAttribute.MinnerAttribute'"));
+
+	if (CurveTable)
+	{
+		SetAttributeSetByCurveTable(CurveTable, TEXT("Miner"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[Miner] Failed to load attribute set curve table."));
+	}
+}
+
+// -------------------- Accessors --------------------
 bool AMiner::IsDepositing() const
 {
 	return bIsDepositing;

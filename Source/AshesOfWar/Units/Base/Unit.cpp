@@ -2,7 +2,6 @@
 
 // GAS and AI includes
 #include "AshesOfWar/Ability/Base/AOWAbilitySystemComponent.h"
-#include "AshesOfWar/Ability/Base/Attributes/AOWAttributeSet.h"
 #include "AshesOfWar/Ability/Base/Attributes/HealthAttributeSet.h"
 #include "AshesOfWar/Ability/Base/Attributes/MoveAttributeSet.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
