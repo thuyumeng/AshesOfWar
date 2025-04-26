@@ -265,21 +265,10 @@ void AMiner::FindNearestHQBase()
 	//}
 }
 
-void AMiner::InitializeAttributeSet()
+// -------------------- Init the AttributeSets--------------------
+void AMiner::InitAttributeSets()
 {
-	//Load the curvetable from the asset manager
-	UCurveTable* CurveTable = LoadObject<UCurveTable>(
-		nullptr,
-		TEXT("CurveTable'/Game/DataTables/AttributeSets/MinnerAttribute.MinnerAttribute'"));
-
-	if (CurveTable)
-	{
-		SetAttributeSetByCurveTable(CurveTable, TEXT("Miner"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("[Miner] Failed to load attribute set curve table."));
-	}
+	this->InitAttributeSetsByCurveTables(TEXT("Miner"));
 }
 
 // -------------------- Accessors --------------------
