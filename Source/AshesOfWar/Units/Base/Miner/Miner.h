@@ -79,7 +79,7 @@ protected:
 	void MoveToDeposit();
 	void DepositAtBase();
 	void FindNearestHQBase();
-	virtual void InitializeAttributeSet() override;
+	virtual void InitAttributeSets() override;
 
 // ------------------ Components ------------------
 protected:

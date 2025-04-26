@@ -85,11 +85,6 @@ void AUnit::InitializeDecal()
 	DecalComponent->SetVisibility(false);
 }
 
-void AUnit::InitializeAttributeSet()
-{
-	// Overriden by subclass
-}
-
 // GAS requirement
 UAbilitySystemComponent* AUnit::GetAbilitySystemComponent() const
 {
@@ -172,27 +167,31 @@ void AUnit::InitDefaultAttributes()
 {
 	if (!AbilitySystemComponent) return;
 
-	InitializeAttributeSet();
+	InitAttributeSets();
 }
 
-void AUnit::SetAttributeSetByCurveTable(UCurveTable* DataTable, const FName& GroupName)
+void AUnit::InitAttributeSetsByCurveTables(const FName& GroupName, int32 Level, bool bInitialInit)
 {
 	if (!AbilitySystemComponent)
 	{
-		UE_LOG(LogTemp, Error, TEXT("[Unit] SetAttributeSetByCurveTable: No AbilitySystemComponent found."));
+		UE_LOG(LogTemp, Error, TEXT("[Unit] InitAttributeSetsByCurveTables: No AbilitySystemComponent found."));
 		return;
 	}
-	FAttributeSetInitterDiscreteLevels AttributeSetInitter;
-	TArray<UCurveTable*> CurveTables;
-	CurveTables.Add(DataTable);
+	FAttributeSetInitterDiscreteLevels AttributeSetsInter;
 
-	AttributeSetInitter.PreloadAttributeSetData(CurveTables);
-	AttributeSetInitter.InitAttributeSetDefaults(
+	AttributeSetsInter.PreloadAttributeSetData(AttributeSetsTables);
+	AttributeSetsInter.InitAttributeSetDefaults(
 		AbilitySystemComponent,
 		GroupName,
-		1, // Level
-		true // Initial load
-		);
+		Level,
+		bInitialInit
+	);
+}
 
-	UE_LOG(LogTemp, Log, TEXT("[Unit] SetAttributeSetByCurveTable: %s"), *DataTable->GetName());
+void AUnit::InitAttributeSets()
+{
+	// Override in subclasses to initialize specific attributes
+	// Example, for a miner, given the proper curve tables and GroupName
+	// FName GroupName = TEXT("Miner");
+	// InitAttributeSetsByCurveTables(GroupName);
 }
