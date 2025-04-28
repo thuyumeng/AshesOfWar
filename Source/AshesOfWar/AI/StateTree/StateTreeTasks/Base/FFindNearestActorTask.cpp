@@ -17,8 +17,8 @@ EStateTreeRunStatus FStateTreeFindNearestActorTask::EnterState(FStateTreeExecuti
 	}
 	UWorld* World = Context.GetWorld();
 	// Get All the actors of the specified class within the search radius
-	GetAllActorsOfClass(World, InstanceData.TargetActorClass, InstanceData.FoundActor, InstanceData.SearchRadius, InstanceData.Actor);
-	return EStateTreeRunStatus::Running;
+	GetNearestActorOfClass(World, InstanceData.TargetActorClass, InstanceData.FoundActor, InstanceData.SearchRadius, InstanceData.Actor);
+	return EStateTreeRunStatus::Unset;
 }
 
 void FStateTreeFindNearestActorTask::ExitState(FStateTreeExecutionContext& Context,
@@ -27,7 +27,7 @@ void FStateTreeFindNearestActorTask::ExitState(FStateTreeExecutionContext& Conte
 	UE_VLOG(Context.GetOwner(), LogStateTree, Log, TEXT("FStateTreeFindNearestActorTask Exit"));
 }
 
-void FStateTreeFindNearestActorTask::GetAllActorsOfClass(const UWorld* World, const TSubclassOf<AActor>& ActorClass,
+void FStateTreeFindNearestActorTask::GetNearestActorOfClass(const UWorld* World, const TSubclassOf<AActor>& ActorClass,
 	TObjectPtr<AActor>& OutActor, float Radius, const TObjectPtr<AActor>& ContextActor)
 {
 	TArray<AActor*> FoundActors;

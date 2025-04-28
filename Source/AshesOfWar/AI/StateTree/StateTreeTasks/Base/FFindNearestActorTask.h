@@ -38,7 +38,7 @@ struct FStateTreeFindNearestActorTask : public FStateTreeAITaskBase
 	GAMEPLAYSTATETREEMODULE_API virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 
 	// utility function to get all actors of a specific class within a radius
-	static void GetAllActorsOfClass(const UWorld* World, const TSubclassOf<AActor>& ActorClass, TObjectPtr<AActor>& OutActor, float Radius, const TObjectPtr<AActor>& ContextActor);
+	static void GetNearestActorOfClass(const UWorld* World, const TSubclassOf<AActor>& ActorClass, TObjectPtr<AActor>& OutActor, float Radius, const TObjectPtr<AActor>& ContextActor);
 #if WITH_EDITOR
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
 	virtual FName GetIconName() const override
