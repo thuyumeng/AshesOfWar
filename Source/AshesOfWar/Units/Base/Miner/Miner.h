@@ -86,9 +86,6 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Resource", meta = (AllowPrivateAccess = "true"))
 	UResourceComponent* ResourceComponent;
 
-	UPROPERTY(EditDefaultsOnly, Category = "AI")
-	UStateTree* MinerStateTreeAsset;
-
 // ------------------ Construction Data ------------------
 protected:
 	UPROPERTY()

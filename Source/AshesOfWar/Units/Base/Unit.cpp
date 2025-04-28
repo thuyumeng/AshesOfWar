@@ -5,6 +5,7 @@
 #include "AshesOfWar/Ability/Base/Attributes/HealthAttributeSet.h"
 #include "AshesOfWar/Ability/Base/Attributes/MoveAttributeSet.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
+#include "AshesOfWar/AI/StateTree/UnitStateTreeAIComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -13,7 +14,7 @@
 // Constructor
 AUnit::AUnit()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	AbilitySystemComponent = CreateDefaultSubobject<UAOWAbilitySystemComponent>(TEXT("AbilitySystemComponent"));
 	InitializeDecal();
 }
@@ -41,6 +42,15 @@ void AUnit::BeginPlay()
 		if (AIController)
 		{
 			AIController->Possess(this);
+			// Initialize the StateTree for the unit's AI
+			if (UUnitStateTreeAIComponent* StateTreeAIComponent = AIController->GetUnitStateTreeAIComponent())
+			{
+				if (StateTreeAsset)
+				{
+					StateTreeAIComponent->SetStateTree(StateTreeAsset);
+					StateTreeAIComponent->StartLogic();
+				}
+			}
 		}
 		else
 		{

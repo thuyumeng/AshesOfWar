@@ -2,6 +2,7 @@
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
 #include "AshesOfWar/Units/Base/Miner/Miner.h"
 #include "StateTreeExecutionContext.h"
+#include "Tasks/StateTreeAITask.h"
 #include "Navigation/PathFollowingComponent.h"
 
 

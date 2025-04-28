@@ -6,6 +6,7 @@
 #include "AshesOfWar/Buildings/Base/ABaseBuilding.h"
 #include "AshesOfWar/Core/GameStates/ARTSGameState.h"
 #include "EngineUtils.h"
+#include "StateTree.h"
 #include "AshesOfWar/Buildings/Base/EBuildingType.h"
 #include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
@@ -14,7 +15,7 @@
 // -------------------- Constructor --------------------
 AMiner::AMiner()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	ResourceComponent = CreateDefaultSubobject<UResourceComponent>(TEXT("ResourceComponent"));
 }
 
@@ -28,18 +29,6 @@ void AMiner::OnBeginPlay_Implementation()
 		if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
 		{
 			SetOwningPlayerState(PC->PlayerState);
-		}
-	}
-
-	if (AUnitAIController* AIController = GetAIController())
-	{
-		if (UUnitStateTreeAIComponent* StateTreeAIComponent = AIController->GetUnitStateTreeAIComponent())
-		{
-			if (MinerStateTreeAsset)
-			{
-				StateTreeAIComponent->SetStateTree(MinerStateTreeAsset);
-				StateTreeAIComponent->StartLogic();
-			}
 		}
 	}
 }
