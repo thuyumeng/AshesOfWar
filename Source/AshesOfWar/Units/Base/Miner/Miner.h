@@ -120,4 +120,6 @@ protected:
 	bool bIsDepositing = false;
 	bool bNodeReportedEmpty = false;
 	float ResourceAccumulator = 0.f;
+	// ------------------ Resource Handling ------------------
+	TWeakObjectPtr<class AAResourceNode> CurrentResourceNode;
 };

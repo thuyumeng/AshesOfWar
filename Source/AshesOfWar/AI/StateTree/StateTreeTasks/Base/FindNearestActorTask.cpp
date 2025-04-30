@@ -1,8 +1,10 @@
-#include "FFindNearestActorTask.h"
+#include "FindNearestActorTask.h"
+#include "AshesOfWar/AI/Utils/AIHelperLibrary.h"
 #include "VisualLogger/VisualLogger.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
 #include "Kismet/GameplayStatics.h"
+
 
 #define LOCTEXT_NAMESPACE "GameplayStateTree"
 
@@ -12,40 +14,28 @@ EStateTreeRunStatus FStateTreeFindNearestActorTask::EnterState(FStateTreeExecuti
 	FInstanceDataType& InstanceData = Context.GetInstanceData(*this);
 	if (!InstanceData.Actor)
 	{
+		// If the context actor is missing, we cannot proceed with the task and stop the AI statetree
 		UE_VLOG(Context.GetOwner(), LogStateTree, Error, TEXT("FStateTreeFindNearestActorTask failed since Context Actor is missing."));
-		return EStateTreeRunStatus::Failed;
+		return EStateTreeRunStatus::Stopped;
 	}
 	UWorld* World = Context.GetWorld();
 	// Get All the actors of the specified class within the search radius
-	GetNearestActorOfClass(World, InstanceData.TargetActorClass, InstanceData.FoundActor, InstanceData.SearchRadius, InstanceData.Actor);
-	return EStateTreeRunStatus::Unset;
+	UAIHelperLibrary::GetNearestActorOfClass(World, InstanceData.TargetActorClass, InstanceData.FoundActor, InstanceData.SearchRadius, InstanceData.Actor);
+	
+	if (!InstanceData.FoundActor)
+	{
+		// If no actor is found, we log a warning and stop the AI statetree
+		UE_VLOG(Context.GetOwner(), LogStateTree, Warning, TEXT("FStateTreeFindNearestActorTask failed to find an actor of class %s within radius %f from %s"),
+			*GetNameSafe(InstanceData.TargetActorClass), InstanceData.SearchRadius, *InstanceData.Actor->GetName());
+		return EStateTreeRunStatus::Stopped;
+	}
+	return EStateTreeRunStatus::Running;
 }
 
 void FStateTreeFindNearestActorTask::ExitState(FStateTreeExecutionContext& Context,
 	const FStateTreeTransitionResult& Transition) const
 {
 	UE_VLOG(Context.GetOwner(), LogStateTree, Log, TEXT("FStateTreeFindNearestActorTask Exit"));
-}
-
-void FStateTreeFindNearestActorTask::GetNearestActorOfClass(const UWorld* World, const TSubclassOf<AActor>& ActorClass,
-	TObjectPtr<AActor>& OutActor, float Radius, const TObjectPtr<AActor>& ContextActor)
-{
-	TArray<AActor*> FoundActors;
-	UGameplayStatics::GetAllActorsOfClass(World, ActorClass, FoundActors);
-	
-	for (AActor* FoundActor : FoundActors)
-	{
-		if (FoundActor == ContextActor)
-		{
-			continue;
-		}
-		float Distance = FVector::Dist(FoundActor->GetActorLocation(), ContextActor->GetActorLocation());
-		if (Distance < Radius)
-		{
-			Radius = Distance;
-			OutActor = FoundActor;
-		}
-	}
 }
 
 #if WITH_EDITOR

@@ -6,7 +6,6 @@
 #include "AshesOfWar/Buildings/Base/ABaseBuilding.h"
 #include "AshesOfWar/Core/GameStates/ARTSGameState.h"
 #include "EngineUtils.h"
-#include "StateTree.h"
 #include "AshesOfWar/Buildings/Base/EBuildingType.h"
 #include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"

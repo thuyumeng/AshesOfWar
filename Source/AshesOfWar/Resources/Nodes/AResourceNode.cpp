@@ -22,17 +22,17 @@ AAResourceNode::AAResourceNode()
 
 	// Defaults
 	ResourceType = EResourceType::Aetherium;
-	QteDisponible = 1000;
-	ExtractionRate = 10;
+	QteDisponible = 1000.f;
+	ExtractionRate = 10.f;
 }
 
 // --- Getters / Setters ---
-int AAResourceNode::GetQteDisponible()
+float AAResourceNode::GetQteDisponible()
 {
 	return QteDisponible;
 }
 
-int AAResourceNode::GetExtRate()
+float AAResourceNode::GetExtRate()
 {
 	return ExtractionRate;
 }
@@ -43,18 +43,17 @@ void AAResourceNode::SetQteDisponible(int Amount)
 }
 
 // --- Consume Resource ---
-void AAResourceNode::ConsumeResource(float Amount)
+float AAResourceNode::ConsumeResource(float Amount)
 {
-	
-	const int32 AmountInt = FMath::RoundToInt(Amount);
-	const int32 PreviousQte = QteDisponible;
-	QteDisponible = FMath::Clamp(QteDisponible - AmountInt, 0, QteDisponible);
+	Amount = FMath::Min(Amount, QteDisponible);
+	QteDisponible -= Amount;
 
 #if WITH_EDITOR
 	FString OwnerName = GetOwner() ? GetOwner()->GetName() : TEXT("None");
-	UE_LOG(LogTemp, Log, TEXT("[ResourceNode] %s consumed %d units. Remaining: %d (from %d)"),
-		*OwnerName, AmountInt, QteDisponible, PreviousQte);
+	UE_LOG(LogTemp, Log, TEXT("[ResourceNode] %s consumed %f units. Remaining: %f"),
+		*OwnerName, Amount, QteDisponible);
 #endif
+	return Amount;
 }
 
 
