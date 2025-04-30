@@ -3,7 +3,6 @@
 #include "VisualLogger/VisualLogger.h"
 #include "StateTreeExecutionContext.h"
 #include "StateTreePropertyBindings.h"
-#include "Kismet/GameplayStatics.h"
 
 
 #define LOCTEXT_NAMESPACE "GameplayStateTree"
@@ -53,9 +52,9 @@ FText FStateTreeFindNearestActorTask::GetDescription(const FGuid& ID, FStateTree
 
 	if (Formatting == EStateTreeNodeFormatting::RichText)
 	{
-		return FText::Format(LOCTEXT("FindNearestActor", "<b>Target Actor Class</> {0}"),TargetClassText);
+		return FText::Format(LOCTEXT("FindNearestActor", "<b>FindNearestActor:Target Actor Class</> {0}"),TargetClassText);
 	}
-	return FText::Format(LOCTEXT("FindNearestActor", "Target Actor Class {0}"), TargetClassText);
+	return FText::Format(LOCTEXT("FindNearestActor", "FindNearestActor:Target Actor Class {0}"), TargetClassText);
 }
 #endif // WITH_EDITOR
 
