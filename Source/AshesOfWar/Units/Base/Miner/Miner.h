@@ -25,7 +25,6 @@ public:
 
 protected:
 	virtual void OnBeginPlay_Implementation() override;
-	virtual void Tick(float DeltaTime) override;
 
 // ------------------ Resource Collection ------------------
 public:
@@ -34,15 +33,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void StopMining();
-
-	UFUNCTION(BlueprintCallable, Category = "Resource")
-	void DepositCollectedResources();
-
+	
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void SetCurrentResourceNode(AAResourceNode* NewNode);
-
-	UFUNCTION(BlueprintCallable, Category = "Resource")
-	bool IsDepositing() const;
 
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	AActor* GetCurrentDepositTarget() const;
@@ -50,7 +43,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	AActor* GetCurrentResourceTarget() const;
 
+	UFUNCTION(BlueprintCallable, Category = "Resource")
 	UResourceComponent* GetResourceComponent() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Resource")
+	void DepositAtBase();
 
 // ------------------ Construction ------------------
 public:
@@ -71,14 +68,10 @@ public:
 // ------------------ Movement ------------------
 public:
 	void MoveToLocation(const FVector& Destination);
+	
 
 // ------------------ Internal Logic ------------------
 protected:
-	void HandleMining(float DeltaTime);
-	void HandleDepositing(float DeltaTime);
-	void MoveToDeposit();
-	void DepositAtBase();
-	void FindNearestHQBase();
 	virtual void InitAttributeSets() override;
 
 // ------------------ Components ------------------
@@ -91,35 +84,6 @@ protected:
 	UPROPERTY()
 	TArray<AActor*> ActiveConstructionTargets;
 	
-// ------------------ Resource Handling ------------------
-protected:
-	UPROPERTY(EditDefaultsOnly, Category = "Resource")
-	int32 CarriedCapacity = 50;
-
-	UPROPERTY(VisibleAnywhere, Category = "Resource")
-	float CarriedAmount = 0.f;
-
-	UPROPERTY(VisibleAnywhere, Category = "Resource")
-	EResourceType CarriedResourceType = EResourceType::Aetherium;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Resource")
-	float MiningDistanceThreshold = 200.f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Resource")
-	float DepositDistanceThreshold = 200.f;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Resource")
-	float CollectionRatePerSecond = 10.f;
-
 	UPROPERTY()
 	APlayerState* OwningPlayerState = nullptr;
-
-	UPROPERTY()
-	ABaseBuilding* CurrentDepositBaseTarget;
-
-	bool bIsDepositing = false;
-	bool bNodeReportedEmpty = false;
-	float ResourceAccumulator = 0.f;
-	// ------------------ Resource Handling ------------------
-	TWeakObjectPtr<class AAResourceNode> CurrentResourceNode;
 };
