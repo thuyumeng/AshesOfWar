@@ -50,8 +50,8 @@ float AAResourceNode::ConsumeResource(float Amount)
 
 #if WITH_EDITOR
 	FString OwnerName = GetOwner() ? GetOwner()->GetName() : TEXT("None");
-	UE_LOG(LogTemp, Log, TEXT("[ResourceNode] %s consumed %f units. Remaining: %f"),
-		*OwnerName, Amount, QteDisponible);
+	// UE_LOG(LogTemp, Log, TEXT("[ResourceNode] %s consumed %f units. Remaining: %f"),
+	// 	*OwnerName, Amount, QteDisponible);
 #endif
 	return Amount;
 }

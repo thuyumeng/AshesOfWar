@@ -17,8 +17,8 @@ UResourceComponent::UResourceComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	bIsCollecting = false;
-	CarriedAmount = 0;
-	CarriedMaxCapacity = 50;
+	CarriedAmount = 0.0f;
+	CarriedMaxCapacity = 50.0f;
 	CarriedResourceType = EResourceType::Aetherium;
 	CurrentResourceNode = nullptr;
 }
@@ -70,6 +70,8 @@ void UResourceComponent::UpdateCollection(float DeltaTime)
 		ExtractionAmount
 	);
 
+	
+
 	// Check if the resource node is empty
 	if (CurrentResourceNode->GetQteDisponible() <= 0)
 	{
@@ -79,6 +81,7 @@ void UResourceComponent::UpdateCollection(float DeltaTime)
 	}
 	
 	CarriedAmount += ExtractionAmount;
+	UE_LOG(LogTemp, Log, TEXT("[ResourceComponent] Collected %f units. Total: %f"), ExtractionAmount, CarriedAmount);
 	// Check if the carried amount exceeds the max capacity
 	if (CarriedAmount > CarriedMaxCapacity)
 	{
@@ -103,7 +106,8 @@ void UResourceComponent::DepositResources()
 
 	if (AARTSGameState* GameState = Cast<AARTSGameState>(UGameplayStatics::GetGameState(GetWorld())))
 	{
-		GameState->AddResource(Player, CarriedResourceType, CarriedAmount);
+		// cast the carried amount to int32 to show on the hud
+		GameState->AddResource(Player, CarriedResourceType, static_cast<int32>(CarriedAmount));
 	}
 
 	CarriedAmount = 0;

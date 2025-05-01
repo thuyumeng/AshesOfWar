@@ -56,8 +56,8 @@ private:
 	bool bIsCollecting;
 
 	EResourceType CarriedResourceType;
-	int32 CarriedAmount;
-	int32 CarriedMaxCapacity;
+	float CarriedAmount;
+	float CarriedMaxCapacity;
 	
 	TWeakObjectPtr<AAResourceNode> CurrentResourceNode;
 	TWeakObjectPtr<ABaseBuilding> CurrentDepositBaseTarget;
