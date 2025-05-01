@@ -26,10 +26,10 @@ public:
 	AAResourceNode();
 
 	// --- Resource Logic ---
-	int GetQteDisponible();
-	int GetExtRate();
+	float GetQteDisponible();
+	float GetExtRate();
 	void SetQteDisponible(int Amount);
-	void ConsumeResource(float Amount);
+	float ConsumeResource(float Amount);
 	EResourceType GetResourceType() const;
 
 protected:
@@ -45,10 +45,10 @@ protected:
 	EResourceType ResourceType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resource")
-	int32 QteDisponible;
+	float QteDisponible;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Resource")
-	int32 ExtractionRate;
+	float ExtractionRate;
 };
 
 // --- Inline Accessor ---

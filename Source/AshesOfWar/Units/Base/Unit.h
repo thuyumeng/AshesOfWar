@@ -13,6 +13,7 @@ class UAOWAttributeSet;
 class UGameplayAbility;
 class UGameplayEffect;
 class AUnitAIController;
+class UStateTree;
 
 /**
  * AUnit
@@ -86,4 +87,8 @@ protected:
 	// --- The DecalComponent for selection
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Components", meta = (AllowPrivateAccess = "true"))
 	UDecalComponent* DecalComponent;
+
+	// --- The AI Component for the unit
+	UPROPERTY(EditDefaultsOnly, Category = "AI")
+	UStateTree* StateTreeAsset;
 };

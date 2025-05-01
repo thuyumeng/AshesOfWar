@@ -1,7 +1,11 @@
 #include "UResourceComponent.h"
+
+#include "AshesOfWar/AI/StateTree/UnitStateTreeAIComponent.h"
 #include "AshesOfWar/Core/GameStates/ARTSGameState.h"
 #include "AshesOfWar/Resources/Nodes/AResourceNode.h"
+#include "AshesOfWar/GameplayTags/AI/AIEventTags.h"
 #include "AshesOfWar/Units/Base/Miner/Miner.h"
+#include "AshesOfWar/Buildings/Base/ABaseBuilding.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Actor.h"
 #include "GameFramework/PlayerState.h"
@@ -13,8 +17,8 @@ UResourceComponent::UResourceComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 
 	bIsCollecting = false;
-	CarriedAmount = 0;
-	CarriedMaxCapacity = 50;
+	CarriedAmount = 0.0f;
+	CarriedMaxCapacity = 50.0f;
 	CarriedResourceType = EResourceType::Aetherium;
 	CurrentResourceNode = nullptr;
 }
@@ -22,7 +26,7 @@ UResourceComponent::UResourceComponent()
 // -------------------- Collection --------------------
 void UResourceComponent::BeginCollection()
 {
-	if (!CurrentResourceNode) return;
+	if (!CurrentResourceNode.IsValid()) return;
 
 	CarriedResourceType = CurrentResourceNode->GetResourceType();
 
@@ -32,6 +36,58 @@ void UResourceComponent::BeginCollection()
 	if (Available <= 0 || ExtractionRate <= 0) return;
 
 	bIsCollecting = true;
+}
+
+void UResourceComponent::StopAndTriggerEmptyEvent()
+{
+	StopCollection();
+	AActor* Owner = GetOwner();
+
+	UUnitStateTreeAIComponent* StateTreeAIComponent = Cast<UUnitStateTreeAIComponent>(Owner->GetComponentByClass(UUnitStateTreeAIComponent::StaticClass()));
+	if (StateTreeAIComponent)
+	{
+		//Send an event to the StateTree
+		StateTreeAIComponent->SendStateTreeEvent(
+			FStateTreeEvent(
+				AIEventTags::EventResourceEmpty));
+	}
+}
+
+void UResourceComponent::UpdateCollection(float DeltaTime)
+{
+	if (!bIsCollecting) return;
+
+	// check if the resource node is valid
+	if (!CurrentResourceNode.IsValid())
+	{
+		StopAndTriggerEmptyEvent();
+		return;
+	}
+
+	// Why the extraction rate is determined by the resource node?
+	float ExtractionAmount = CurrentResourceNode->GetExtRate() * DeltaTime;
+	ExtractionAmount = CurrentResourceNode->ConsumeResource(
+		ExtractionAmount
+	);
+
+	
+
+	// Check if the resource node is empty
+	if (CurrentResourceNode->GetQteDisponible() <= 0)
+	{
+		// TODO I should consider the multi-thread scenario, for I just destroy the node
+		CurrentResourceNode->Destroy();
+		StopAndTriggerEmptyEvent();
+	}
+	
+	CarriedAmount += ExtractionAmount;
+	UE_LOG(LogTemp, Log, TEXT("[ResourceComponent] Collected %f units. Total: %f"), ExtractionAmount, CarriedAmount);
+	// Check if the carried amount exceeds the max capacity
+	if (CarriedAmount > CarriedMaxCapacity)
+	{
+		CarriedAmount = CarriedMaxCapacity;
+		StopCollection();
+	}
 }
 
 void UResourceComponent::StopCollection()
@@ -50,11 +106,11 @@ void UResourceComponent::DepositResources()
 
 	if (AARTSGameState* GameState = Cast<AARTSGameState>(UGameplayStatics::GetGameState(GetWorld())))
 	{
-		GameState->AddResource(Player, CarriedResourceType, CarriedAmount);
+		// cast the carried amount to int32 to show on the hud
+		GameState->AddResource(Player, CarriedResourceType, static_cast<int32>(CarriedAmount));
 	}
 
 	CarriedAmount = 0;
-	bIsCollecting = false;
 }
 
 // -------------------- Owner Resolution --------------------
@@ -81,10 +137,20 @@ void UResourceComponent::SetCurrentResourceNode(AAResourceNode* NewNode)
 
 AAResourceNode* UResourceComponent::GetCurrentResourceNode() const
 {
-	return CurrentResourceNode;
+	return CurrentResourceNode.Get();
 }
 
 bool UResourceComponent::IsCollecting() const
 {
 	return bIsCollecting;
+}
+
+void UResourceComponent::SetDepositBaseTarget(ABaseBuilding* NewTarget)
+{
+	CurrentDepositBaseTarget = NewTarget;
+}
+
+ABaseBuilding* UResourceComponent::GetDepositBaseTarget() const
+{
+	return CurrentDepositBaseTarget.Get();
 }

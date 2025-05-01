@@ -8,6 +8,7 @@
 
 // --- Forward Declarations ---
 class AAResourceNode;
+class ABaseBuilding;
 
 /**
  * UResourceComponent
@@ -29,6 +30,9 @@ public:
 	void BeginCollection();
 
 	UFUNCTION(BlueprintCallable, Category = "Resource")
+	void UpdateCollection(float DeltaTime);
+
+	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void StopCollection();
 
 	UFUNCTION(BlueprintCallable, Category = "Resource")
@@ -41,14 +45,20 @@ public:
 	AAResourceNode* GetCurrentResourceNode() const;
 	bool IsCollecting() const;
 
+	void SetDepositBaseTarget(ABaseBuilding* NewTarget);
+	ABaseBuilding* GetDepositBaseTarget() const;
+
+protected:
+	// Stop collection and trigger empty event in StateTreeAIComponent
+	void StopAndTriggerEmptyEvent();
 private:
 	// --- State ---
 	bool bIsCollecting;
 
 	EResourceType CarriedResourceType;
-	int32 CarriedAmount;
-	int32 CarriedMaxCapacity;
-
-	UPROPERTY()
-	AAResourceNode* CurrentResourceNode;
+	float CarriedAmount;
+	float CarriedMaxCapacity;
+	
+	TWeakObjectPtr<AAResourceNode> CurrentResourceNode;
+	TWeakObjectPtr<ABaseBuilding> CurrentDepositBaseTarget;
 };
