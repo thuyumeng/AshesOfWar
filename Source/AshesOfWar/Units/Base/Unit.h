@@ -48,8 +48,23 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void StopMovement();
 
+	// Set the unit as selected and show the decal effect
 	UFUNCTION(BlueprintCallable)
 	void SetSelectedUnit(bool bSelected);
+
+	// Set the unit's target actor (like the resource node, enemy, etc.)
+	UFUNCTION(BlueprintCallable)
+	virtual void SetTargetActor(AActor* TargetActor) { Target = TargetActor; }
+
+	UFUNCTION(Blueprintable)
+	AActor* GetTargetActor() const
+	{
+		if (Target.IsValid())
+		{
+			return Target.Get();
+		}
+		return nullptr;
+	}
 
 protected:
 	// Called at spawn time
@@ -59,7 +74,7 @@ protected:
 	// Gives the unit its default gameplay abilities
 	void GiveDefaultAbilities();
 
-	// Initialze the default attributes for the unit
+	// Initialize the default attributes for the unit
 	void InitDefaultAttributes();
 
 	// Utility function to set the attributeSet by the CurveTable
@@ -91,4 +106,8 @@ protected:
 	// --- The AI Component for the unit
 	UPROPERTY(EditDefaultsOnly, Category = "AI")
 	UStateTree* StateTreeAsset;
+
+	// --- The target actor (like the resource node, enemy, etc.)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Target")
+	TWeakObjectPtr<AActor> Target = nullptr;
 };
