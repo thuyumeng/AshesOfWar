@@ -19,7 +19,7 @@ struct FStateTreeSetCurrentResourceNodeTaskInstanceData
 /**
  * Task that sets the current resource node of a specified miner.
  */
-USTRUCT(meta = (DisplayName = "Collecting Resource", Category = "AI|Setter"))
+USTRUCT(meta = (DisplayName = "Set Current ResourceNode", Category = "AI|Setter"))
 struct FStateTreeSetCurrentResourceNodeTask : public FStateTreeAITaskBase
 {
 	GENERATED_BODY()

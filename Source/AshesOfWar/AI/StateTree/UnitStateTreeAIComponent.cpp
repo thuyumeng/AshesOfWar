@@ -1,6 +1,8 @@
 // --- Includes ---
 #include "UnitStateTreeAIComponent.h"
 
+#include "StateTree.h"
+
 // --- Constructor ---
 UUnitStateTreeAIComponent::UUnitStateTreeAIComponent()
 {

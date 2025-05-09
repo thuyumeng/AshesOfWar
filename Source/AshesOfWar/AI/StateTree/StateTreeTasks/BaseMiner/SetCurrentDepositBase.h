@@ -1,14 +1,11 @@
 #pragma once
 #include "Tasks/StateTreeAITask.h"
-#include "CallImmediateFunctionTask.generated.h"
-
-/**
- * Task that calls a immediate function without any parameters on the specified actor.
- * Immediate function means it will finish immediately, not Delayed Task not Async Task.
- */
-
+#include "SetCurrentDepositBase.generated.h"
+// Set the current ResourceNode of the Miner
 USTRUCT()
-struct FStateTreeCallImmediateFunctionTaskInstanceData
+
+
+struct FStateTreeSetCurrentDepositBaseTaskInstanceData
 {
 	GENERATED_BODY()
 
@@ -16,18 +13,18 @@ struct FStateTreeCallImmediateFunctionTaskInstanceData
 	TObjectPtr<AActor> Actor = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = Parameter)
-	FName FunctionName;
-
-	UPROPERTY(EditAnywhere, Category = Parameter)
-	bool bFinishTaskWhenCalled = true;
+	TWeakObjectPtr<AActor> DepositBase = nullptr;
 };
 
-USTRUCT(meta = (DisplayName = "Call Immediate Function From Actor", Category = "AI|Action"))
-struct FStateTreeCallImmediateFunctionTask : public FStateTreeAITaskBase
+/**
+ * Task that sets the current resource node of a specified miner.
+ */
+USTRUCT(meta = (DisplayName = "Set Current DepositBase", Category = "AI|Setter"))
+struct FStateTreeSetCurrentDepositBaseTask : public FStateTreeAITaskBase
 {
 	GENERATED_BODY()
-	using FInstanceDataType = struct FStateTreeCallImmediateFunctionTaskInstanceData;
-
+	using FInstanceDataType = struct FStateTreeSetCurrentDepositBaseTaskInstanceData;
+		
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
 	GAMEPLAYSTATETREEMODULE_API virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 	GAMEPLAYSTATETREEMODULE_API virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
@@ -36,7 +33,7 @@ struct FStateTreeCallImmediateFunctionTask : public FStateTreeAITaskBase
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
 	virtual FName GetIconName() const override
 	{
-		return FName("StateTreeEditorStyle|Node.CallImmediateFunction");
+		return FName("StateTreeEditorStyle|Node.SetCurrentDepositBase");
 	}
 	virtual FColor GetIconColor() const override
 	{
@@ -44,4 +41,3 @@ struct FStateTreeCallImmediateFunctionTask : public FStateTreeAITaskBase
 	}
 #endif // WITH_EDITOR
 };
-	

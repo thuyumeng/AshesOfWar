@@ -44,17 +44,20 @@ FText FStateTreeFindNearestActorTask::GetDescription(const FGuid& ID, FStateTree
 	const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
 	check(InstanceData);
 
-	FText TargetClassText = BindingLookup.GetBindingSourceDisplayName(
-		FStateTreePropertyPath(
-			ID,
-			GET_MEMBER_NAME_CHECKED(FInstanceDataType, TargetActorClass)
-		), Formatting);
-
+	FText ShowName;
+	if (!InstanceData->TargetActorClass)
+	{
+		ShowName = FText::FromString("None");
+	}
+	else
+	{
+		ShowName = FText::FromString(InstanceData->TargetActorClass->GetName()); 
+	}
 	if (Formatting == EStateTreeNodeFormatting::RichText)
 	{
-		return FText::Format(LOCTEXT("FindNearestActor", "<b>FindNearestActor:Target Actor Class</> {0}"),TargetClassText);
+		return FText::Format(LOCTEXT("FindNearestActor", "<b>FindNearestActor:Target Actor Class</> {0}"), ShowName);
 	}
-	return FText::Format(LOCTEXT("FindNearestActor", "FindNearestActor:Target Actor Class {0}"), TargetClassText);
+	return FText::Format(LOCTEXT("FindNearestActor", "FindNearestActor:Target Actor Class {0}"), ShowName);
 }
 #endif // WITH_EDITOR
 

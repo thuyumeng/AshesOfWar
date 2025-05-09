@@ -51,17 +51,11 @@ FText FStateTreeCallImmediateFunctionTask::GetDescription(const FGuid& ID, FStat
     const FInstanceDataType* InstanceData = InstanceDataView.GetPtr<FInstanceDataType>();
     check(InstanceData);
 
-    FText FuncNameText = BindingLookup.GetBindingSourceDisplayName(
-        FStateTreePropertyPath(
-            ID,
-            GET_MEMBER_NAME_CHECKED(FInstanceDataType, FunctionName)
-        ), Formatting);
-
     if (Formatting == EStateTreeNodeFormatting::RichText)
     {
-        return FText::Format(LOCTEXT("CallImmediateFunction", "<b>CallImmediateFunction:/> {0}"),FuncNameText);
+        return FText::Format(LOCTEXT("CallImmediateFunction", "<b>CallImmediateFunction: </> {0}"), FText::FromName(InstanceData->FunctionName));
     }
-    return FText::Format(LOCTEXT("CallImmediateFunction", "CallImmediateFunction: {0}"), FuncNameText);
+    return FText::Format(LOCTEXT("CallImmediateFunction", "CallImmediateFunction: {0}"), FText::FromName(InstanceData->FunctionName));
 }
 #endif // WITH_EDITOR
 
