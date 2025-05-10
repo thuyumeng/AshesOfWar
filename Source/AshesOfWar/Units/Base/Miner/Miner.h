@@ -26,8 +26,9 @@ public:
 protected:
 	virtual void OnBeginPlay_Implementation() override;
 
-// ------------------ Resource Collection ------------------
+
 public:
+// ------------------ Resource Collection ------------------
 	UFUNCTION(BlueprintCallable, Category = "Resource")
 	void MineResource();
 
@@ -64,11 +65,6 @@ public:
 public:
 	void SetOwningPlayerState(APlayerState* Player);
 	APlayerState* GetOwningPlayerState() const;
-
-// ------------------ Movement ------------------
-public:
-	void MoveToLocation(const FVector& Destination);
-	
 
 // ------------------ Internal Logic ------------------
 protected:

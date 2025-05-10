@@ -6,6 +6,7 @@
 #include "AshesOfWar/Ability/Base/Attributes/MoveAttributeSet.h"
 #include "AshesOfWar/AI/AIControllers/UnitAIController.h"
 #include "AshesOfWar/AI/StateTree/UnitStateTreeAIComponent.h"
+#include "AshesOfWar/GameplayTags/AI/AIEventTags.h"
 #include "Components/CapsuleComponent.h"
 #include "Navigation/PathFollowingComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -23,6 +24,35 @@ AUnit::AUnit()
 void AUnit::OnBeginPlay_Implementation()
 {
 	// Optional: add a debug log or override in blueprint
+}
+
+void AUnit::SwitchToState(const FName& StateName)
+{
+	AUnitAIController* AIController = Cast<AUnitAIController>(GetController());
+	UUnitStateTreeAIComponent* StateTreeAIComponent = Cast<UUnitStateTreeAIComponent>(
+		AIController->GetUnitStateTreeAIComponent());
+	check(StateTreeAIComponent);
+	// Switch to the specified state
+	if (StateName == TEXT("Idle"))
+	{
+		// Handle idle state
+		StateTreeAIComponent->SendStateTreeEvent(
+			AIEventTags::EventAIResetState);
+	}
+	else if (StateName == TEXT("AIControlled"))
+	{
+		StateTreeAIComponent->SendStateTreeEvent(
+			AIEventTags::EventAIControl);
+	}
+	else if (StateName == TEXT("PlayerControlled"))
+	{
+		StateTreeAIComponent->SendStateTreeEvent(
+			AIEventTags::EventAIPlayerControl);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("Invalid State Name: %s"), *StateName.ToString());
+	}
 }
 
 // Called at unit spawn
@@ -115,6 +145,7 @@ TObjectPtr<AUnitAIController> AUnit::GetAIController() const
 // Command to move to a location
 void AUnit::MoveToLocation(FVector TargetLocation)
 {
+	SwitchToState(TEXT("Idle"));
 	AAIController* AIController = Cast<AAIController>(GetController());
 	if (!AIController)
 	{

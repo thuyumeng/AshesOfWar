@@ -42,7 +42,7 @@ public:
 
 	// Issues a move command to the unit
 	UFUNCTION(BlueprintCallable)
-	void MoveToLocation(FVector TargetLocation);
+	virtual void MoveToLocation(FVector TargetLocation);
 
 	// Stops any current movement
 	UFUNCTION(BlueprintCallable)
@@ -56,7 +56,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual void SetTargetActor(AActor* TargetActor) { Target = TargetActor; }
 
-	UFUNCTION(Blueprintable)
+	UFUNCTION(BlueprintCallable)
 	AActor* GetTargetActor() const
 	{
 		if (Target.IsValid())
@@ -65,6 +65,10 @@ public:
 		}
 		return nullptr;
 	}
+
+	// ------------------ Switching States ------------------
+	UFUNCTION(BlueprintCallable, Category = "AIState")
+	void SwitchToState(const FName& StateName);
 
 protected:
 	// Called at spawn time
