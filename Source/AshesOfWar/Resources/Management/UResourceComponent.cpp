@@ -40,10 +40,6 @@ void UResourceComponent::BeginCollection()
 	bIsCollecting = true;
 }
 
-void UResourceComponent::StopAndTriggerEmptyEvent()
-{
-	StopCollection();
-}
 
 void UResourceComponent::UpdateCollection(float DeltaTime)
 {
@@ -116,30 +112,6 @@ APlayerState* UResourceComponent::GetPlayerState() const
 	}
 
 	return nullptr;
-}
-
-UUnitStateTreeAIComponent* UResourceComponent::GetStateTreeAIComponent()
-{
-	ACharacter* Owner = Cast<ACharacter>(GetOwner());
-	if (!Owner)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[ResourceComponent] Owner is not a character!"));
-		return nullptr;
-	};
-	// Get the AIController from the Owner
-	AUnitAIController* AIController = Cast<AUnitAIController>(Owner->GetController());
-	if (!AIController)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[ResourceComponent] Owner does not have a valid AUnitAIController!"));
-		return nullptr;
-	}
-	UUnitStateTreeAIComponent* StateTreeAIComponent = AIController->GetUnitStateTreeAIComponent();
-	if (!StateTreeAIComponent)
-	{
-		UE_LOG(LogTemp, Error, TEXT("[ResourceComponent] Owner does not have a valid UnitStateTreeAIComponent!"));
-		return nullptr;
-	}
-	return StateTreeAIComponent;
 }
 
 // -------------------- Node Access --------------------

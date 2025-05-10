@@ -41,7 +41,6 @@ public:
 
 	// --- Accessors ---
 	APlayerState* GetPlayerState() const;
-	UUnitStateTreeAIComponent* GetStateTreeAIComponent();
 
 	void SetCurrentResourceNode(AAResourceNode* NewNode);
 	AAResourceNode* GetCurrentResourceNode() const;
@@ -49,10 +48,6 @@ public:
 
 	void SetDepositBase(ABaseBuilding* NewTarget);
 	ABaseBuilding* GetDepositBaseTarget() const;
-
-protected:
-	// Stop collection and trigger empty event in StateTreeAIComponent
-	void StopAndTriggerEmptyEvent();
 private:
 	// --- State ---
 	bool bIsCollecting;
