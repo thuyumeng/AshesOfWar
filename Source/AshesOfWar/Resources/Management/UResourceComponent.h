@@ -2,6 +2,7 @@
 
 // --- Includes ---
 #include "CoreMinimal.h"
+#include "AshesOfWar/AI/StateTree/UnitStateTreeAIComponent.h"
 #include "Components/ActorComponent.h"
 #include "AshesOfWar/Resources/ResourcesTypes/EResourceType.h"
 #include "UResourceComponent.generated.h"
@@ -45,12 +46,8 @@ public:
 	AAResourceNode* GetCurrentResourceNode() const;
 	bool IsCollecting() const;
 
-	void SetDepositBaseTarget(ABaseBuilding* NewTarget);
+	void SetDepositBase(ABaseBuilding* NewTarget);
 	ABaseBuilding* GetDepositBaseTarget() const;
-
-protected:
-	// Stop collection and trigger empty event in StateTreeAIComponent
-	void StopAndTriggerEmptyEvent();
 private:
 	// --- State ---
 	bool bIsCollecting;

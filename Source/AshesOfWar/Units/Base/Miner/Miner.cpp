@@ -3,6 +3,7 @@
 #include "AshesOfWar/Resources/Management/UResourceComponent.h"
 #include "AshesOfWar/Resources/Nodes/AResourceNode.h"
 #include "AshesOfWar/Buildings/Base/ABaseBuilding.h"
+#include "AshesOfWar/GameplayTags/AI/AIEventTags.h"
 #include "GameFramework/PlayerState.h"
 #include "Kismet/GameplayStatics.h"
 #include "Navigation/PathFollowingComponent.h"
@@ -26,6 +27,9 @@ void AMiner::OnBeginPlay_Implementation()
 			SetOwningPlayerState(PC->PlayerState);
 		}
 	}
+
+	// Switch to the AIControlled State
+	SwitchToState(TEXT("AIControlled"));
 }
 
 // -------------------- Deposit Logic -------------------
@@ -45,6 +49,7 @@ void AMiner::MineResource()
 	AAResourceNode* Node = ResourceComponent->GetCurrentResourceNode();
 	if (!Node || Node->GetQteDisponible() <= 0) return;
 	ResourceComponent->BeginCollection();
+	SwitchToState(TEXT("AIControlled"));
 }
 
 void AMiner::StopMining()
@@ -93,19 +98,6 @@ void AMiner::SetOwningPlayerState(APlayerState* Player)
 APlayerState* AMiner::GetOwningPlayerState() const
 {
 	return OwningPlayerState;
-}
-
-// -------------------- Movement --------------------
-void AMiner::MoveToLocation(const FVector& Destination)
-{
-	if (AUnitAIController* AIController = Cast<AUnitAIController>(GetController()))
-	{
-		FAIMoveRequest MoveRequest;
-		MoveRequest.SetGoalLocation(Destination);
-		MoveRequest.SetAcceptanceRadius(120.f);
-		FNavPathSharedPtr NavPath;
-		AIController->MoveTo(MoveRequest, &NavPath);
-	}
 }
 
 // -------------------- Init the AttributeSets--------------------

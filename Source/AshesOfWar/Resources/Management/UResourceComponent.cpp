@@ -1,5 +1,7 @@
 #include "UResourceComponent.h"
 
+#include "AIController.h"
+#include "AshesOfWar/AI/AIControllers/UnitAIController.h"
 #include "AshesOfWar/AI/StateTree/UnitStateTreeAIComponent.h"
 #include "AshesOfWar/Core/GameStates/ARTSGameState.h"
 #include "AshesOfWar/Resources/Nodes/AResourceNode.h"
@@ -38,20 +40,6 @@ void UResourceComponent::BeginCollection()
 	bIsCollecting = true;
 }
 
-void UResourceComponent::StopAndTriggerEmptyEvent()
-{
-	StopCollection();
-	AActor* Owner = GetOwner();
-
-	UUnitStateTreeAIComponent* StateTreeAIComponent = Cast<UUnitStateTreeAIComponent>(Owner->GetComponentByClass(UUnitStateTreeAIComponent::StaticClass()));
-	if (StateTreeAIComponent)
-	{
-		//Send an event to the StateTree
-		StateTreeAIComponent->SendStateTreeEvent(
-			FStateTreeEvent(
-				AIEventTags::EventResourceEmpty));
-	}
-}
 
 void UResourceComponent::UpdateCollection(float DeltaTime)
 {
@@ -60,7 +48,7 @@ void UResourceComponent::UpdateCollection(float DeltaTime)
 	// check if the resource node is valid
 	if (!CurrentResourceNode.IsValid())
 	{
-		StopAndTriggerEmptyEvent();
+		StopCollection();
 		return;
 	}
 
@@ -70,14 +58,12 @@ void UResourceComponent::UpdateCollection(float DeltaTime)
 		ExtractionAmount
 	);
 
-	
-
 	// Check if the resource node is empty
 	if (CurrentResourceNode->GetQteDisponible() <= 0)
 	{
 		// TODO I should consider the multi-thread scenario, for I just destroy the node
 		CurrentResourceNode->Destroy();
-		StopAndTriggerEmptyEvent();
+		StopCollection();
 	}
 	
 	CarriedAmount += ExtractionAmount;
@@ -95,7 +81,6 @@ void UResourceComponent::StopCollection()
 	if (!bIsCollecting) return;
 
 	bIsCollecting = false;
-	CurrentResourceNode = nullptr;
 }
 
 // -------------------- Deposit --------------------
@@ -133,7 +118,7 @@ APlayerState* UResourceComponent::GetPlayerState() const
 void UResourceComponent::SetCurrentResourceNode(AAResourceNode* NewNode)
 {
 	CurrentResourceNode = NewNode;
-}
+ }
 
 AAResourceNode* UResourceComponent::GetCurrentResourceNode() const
 {
@@ -145,7 +130,7 @@ bool UResourceComponent::IsCollecting() const
 	return bIsCollecting;
 }
 
-void UResourceComponent::SetDepositBaseTarget(ABaseBuilding* NewTarget)
+void UResourceComponent::SetDepositBase(ABaseBuilding* NewTarget)
 {
 	CurrentDepositBaseTarget = NewTarget;
 }
