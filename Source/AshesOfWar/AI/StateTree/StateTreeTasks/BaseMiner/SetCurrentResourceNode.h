@@ -3,8 +3,6 @@
 #include "SetCurrentResourceNode.generated.h"
 // Set the current ResourceNode of the Miner
 USTRUCT()
-
-
 struct FStateTreeSetCurrentResourceNodeTaskInstanceData
 {
 	GENERATED_BODY()
