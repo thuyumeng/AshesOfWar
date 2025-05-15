@@ -23,5 +23,5 @@ public:
 	 * @param Radius The search radius.
 	 * @param ContextActor The actor from which to measure the distance.
 	 */
-	static AIMODULE_API void GetNearestActorOfClass(const UWorld* World, const TSubclassOf<AActor>& ActorClass, TObjectPtr<AActor>& OutActor, float Radius, const TObjectPtr<AActor>& ContextActor);
+	static void GetNearestActorOfClass(const UWorld* World, const TSubclassOf<AActor>& ActorClass, TObjectPtr<AActor>& OutActor, float Radius, const TObjectPtr<AActor>& ContextActor);
 };
