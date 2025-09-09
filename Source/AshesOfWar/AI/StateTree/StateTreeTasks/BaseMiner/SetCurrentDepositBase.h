@@ -23,11 +23,11 @@ USTRUCT(meta = (DisplayName = "Set Current DepositBase", Category = "AI|Setter")
 struct FStateTreeSetCurrentDepositBaseTask : public FStateTreeAITaskBase
 {
 	GENERATED_BODY()
-	using FInstanceDataType = struct FStateTreeSetCurrentDepositBaseTaskInstanceData;
+	using FInstanceDataType = FStateTreeSetCurrentDepositBaseTaskInstanceData;
 		
 	virtual const UStruct* GetInstanceDataType() const override { return FInstanceDataType::StaticStruct(); }
-	GAMEPLAYSTATETREEMODULE_API virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
-	GAMEPLAYSTATETREEMODULE_API virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+	virtual EStateTreeRunStatus EnterState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
+	virtual void ExitState(FStateTreeExecutionContext& Context, const FStateTreeTransitionResult& Transition) const override;
 
 #if WITH_EDITOR
 	virtual FText GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting = EStateTreeNodeFormatting::Text) const override;
